@@ -1,1 +1,1 @@
-# TTQuoteHistoryClient
+# TickTrader Quote History C# client

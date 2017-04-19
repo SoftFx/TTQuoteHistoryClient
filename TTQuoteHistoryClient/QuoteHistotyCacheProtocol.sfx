@@ -1,0 +1,79 @@
+protocol QuoteHistoryCacheProtocol
+{
+    enum PriceType
+    {
+        Bid,
+        Ask
+    };
+
+    group Bar
+    {        
+        timestamp Time;
+        double Open;
+        double High;
+        double Low;
+        double Close;
+        double Volume;
+    }
+
+    group TickId
+    {        
+        timestamp Time;
+        uint8     Index;
+    }
+
+    group Level2Value
+    {        
+        double Price;
+        double Volume;
+    }
+
+    group Level2Collection
+    {        
+        Level2Value[] Bids;
+        Level2Value[] Asks;
+    }
+
+    group Tick
+    {        
+        TickId Id;
+        Level2Collection Level2;
+    }
+
+    message QueryQuoteHistoryBarsRequest
+    {
+        ustring RequestId;
+        timestamp Timestamp;
+        int32 Count;
+        ustring Symbol;
+        ustring Periodicity;
+        PriceType PriceType;
+    };
+
+    message QueryQuoteHistoryBarsReport
+    {
+        ustring RequestId;
+        Bar[] Bars;
+    };
+
+    message QueryQuoteHistoryTicksRequest
+    {
+        ustring RequestId;
+        timestamp Timestamp;
+        int32 Count;
+        ustring Symbol;
+        bool Level2;
+    };
+
+    message QueryQuoteHistoryTicksReport
+    {
+        ustring RequestId;
+        Tick[] Ticks;
+    };
+
+    message QueryQuoteHistoryReject
+    {
+        ustring RequestId;
+        ustring RejectMessage;
+    };
+}
