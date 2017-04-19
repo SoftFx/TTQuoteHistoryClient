@@ -52,14 +52,14 @@ namespace TTQuoteHistoryClient
         public void Connect()
         {
             _session.Connect(_address);
-            if (_session.WaitConnect(_timeout))
+            if (!_session.WaitConnect(_timeout))
                 throw new TimeoutException("Connect timeout");
         }
 
         public void Disconnect()
         {
             _session.Disconnect("Disconnect client");
-            if (_session.WaitConnect(_timeout))
+            if (!_session.WaitDisconnect(_timeout))
                 throw new TimeoutException("Connect timeout");
         }
 
