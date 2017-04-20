@@ -180,19 +180,28 @@ namespace TTQuoteHistoryClient
 
         public void Connect()
         {
-            _session.Connect(_address);
-            if (!_session.WaitConnect(_timeout))
-                throw new TimeoutException("Connect timeout");
+            lock (_locker)
+            {
+                if (IsConnected)
+                    throw new Exception("Client is alredy connected!");
+
+                _session.Connect(_address);
+                if (!_session.WaitConnect(_timeout))
+                    throw new TimeoutException("Connect timeout");
+            }
         }
 
         public void Disconnect()
         {
-            _session.Disconnect("Disconnect client");
-            _session.Join();
-
-            // Reset all async call tokens
             lock (_locker)
             {
+                if (!IsConnected)
+                    return;
+
+                _session.Disconnect("Disconnect client");
+                _session.Join();
+
+                // Reset all async call tokens
                 foreach (var token in _callTokens)
                     token.Value.WaitHandle.Set();
                 _callTokens.Clear();

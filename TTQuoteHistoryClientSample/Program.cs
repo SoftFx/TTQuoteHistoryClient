@@ -105,6 +105,9 @@ namespace TTQuoteHistoryClientSample
                         foreach (var bar in result)
                             Console.WriteLine(bar);
                     }
+
+                    // Disconnect to the server
+                    client.Disconnect();
                 }
             }
             catch (Exception ex)
