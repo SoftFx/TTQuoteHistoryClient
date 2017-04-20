@@ -53,7 +53,7 @@ namespace TTQuoteHistoryClient
         {
         }
 
-        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port))
+        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port) { ConnectMaxCount = 1 })
         {
         }
 
@@ -190,7 +190,10 @@ namespace TTQuoteHistoryClient
         {
             _session.Connect(_address);
             if (!_session.WaitConnect(_timeout))
+            {
+                Disconnect();
                 throw new TimeoutException("Connect timeout");
+            }
         }
 
         public void Disconnect()
