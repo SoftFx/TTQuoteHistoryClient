@@ -14,11 +14,11 @@ namespace TTQuoteHistoryClient
     public class Bar
     {
         public DateTime Time;
-        public double Open;
-        public double High;
-        public double Low;
-        public double Close;
-        public double Volume;
+        public decimal Open;
+        public decimal High;
+        public decimal Low;
+        public decimal Close;
+        public decimal Volume;
 
         public override string ToString() => $"{Time:yyyy.MM.dd HH:mm:ss.fff}: {Open:0.#####}, {High:0.#####}, {Low:0.#####}, {Close:0.#####}, {Volume:0.#####}";
     }
@@ -33,8 +33,8 @@ namespace TTQuoteHistoryClient
 
     public class Level2Value
     {
-        public double Price;
-        public double Volume;
+        public decimal Price;
+        public decimal Volume;
 
         public override string ToString() => $"Price={Price:0.#####}, Volume={Volume:0.#####}";
     }

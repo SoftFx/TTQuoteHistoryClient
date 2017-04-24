@@ -106,11 +106,11 @@ namespace TTQuoteHistoryClient
                         var bar = new Bar
                         {
                             Time = sourceBar.Time,
-                            Open = sourceBar.Open,
-                            High = sourceBar.High,
-                            Low = sourceBar.Low,
-                            Close = sourceBar.Close,
-                            Volume = sourceBar.Volume
+                            Open = (decimal)sourceBar.Open,
+                            High = (decimal)sourceBar.High,
+                            Low = (decimal)sourceBar.Low,
+                            Close = (decimal)sourceBar.Close,
+                            Volume = (decimal)sourceBar.Volume
                         };
                         result.Add(bar);
                     }
@@ -144,8 +144,8 @@ namespace TTQuoteHistoryClient
                             var sourceBid = sourceTick.Level2.Bids[j];
                             var bid = new Level2Value
                             {
-                                Price = sourceBid.Price,
-                                Volume = sourceBid.Volume
+                                Price = (decimal)sourceBid.Price,
+                                Volume = (decimal)sourceBid.Volume
                             };
                             tick.Level2.Bids.Add(bid);
                         }
@@ -155,8 +155,8 @@ namespace TTQuoteHistoryClient
                             var sourceAsk = sourceTick.Level2.Asks[j];
                             var ask = new Level2Value
                             {
-                                Price = sourceAsk.Price,
-                                Volume = sourceAsk.Volume
+                                Price = (decimal)sourceAsk.Price,
+                                Volume = (decimal)sourceAsk.Volume
                             };
                             tick.Level2.Asks.Add(ask);
                         }
