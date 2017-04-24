@@ -406,6 +406,364 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
+    public struct QuoteHistorySymbolsRequest
+    {
+        public QuoteHistorySymbolsRequest(int i)
+        {
+            info_ = QuoteHistoryCacheProtocol.Info.QuoteHistorySymbolsRequest;
+            data_ = new MessageData(16);
+            
+            data_.SetInt(4, 0);
+        }
+        
+        public QuoteHistorySymbolsRequest(MessageInfo info, MessageData data)
+        {
+            if (! info.Is(QuoteHistoryCacheProtocol.Info.QuoteHistorySymbolsRequest))
+                throw new Exception("Invalid message type cast operation");
+            
+            info_ = info;
+            data_ = data;
+        }
+        
+        public MessageInfo Info
+        {
+            get { return info_; }
+        }
+        
+        public MessageData Data
+        {
+            get { return data_; }
+        }
+        
+        public int Size
+        {
+            get { return data_.GetInt(0); }
+        }
+        
+        public string RequestId
+        {
+            set { data_.SetUString(8, value); }
+            
+            get { return data_.GetUString(8); }
+        }
+        
+        public int GetRequestIdLength()
+        {
+            return data_.GetUStringLength(8);
+        }
+        
+        public void SetRequestId(char[] value, int offset, int count)
+        {
+            data_.SetUString(8, value, offset, count);
+        }
+        
+        public void GetRequestId(char[] value, int offset)
+        {
+            data_.GetUString(8, value, offset);
+        }
+        
+        public void ReadRequestId(Stream stream, int size)
+        {
+            data_.ReadUString(8, stream, size);
+        }
+        
+        public void WriteRequestId(Stream stream)
+        {
+            data_.WriteUString(8, stream);
+        }
+        
+        public QuoteHistorySymbolsRequest Clone()
+        {
+            MessageData data = data_.Clone();
+            
+            return new QuoteHistorySymbolsRequest(info_, data);
+        }
+        
+        public void Reset()
+        {
+            data_.Reset(16);
+        }
+        
+        public override string ToString()
+        {
+            return data_.ToString(info_);
+        }
+        
+        MessageInfo info_;
+        MessageData data_;
+    }
+    
+    public struct QuoteHistorySymbolsReport
+    {
+        public QuoteHistorySymbolsReport(int i)
+        {
+            info_ = QuoteHistoryCacheProtocol.Info.QuoteHistorySymbolsReport;
+            data_ = new MessageData(24);
+            
+            data_.SetInt(4, 1);
+        }
+        
+        public QuoteHistorySymbolsReport(MessageInfo info, MessageData data)
+        {
+            if (! info.Is(QuoteHistoryCacheProtocol.Info.QuoteHistorySymbolsReport))
+                throw new Exception("Invalid message type cast operation");
+            
+            info_ = info;
+            data_ = data;
+        }
+        
+        public MessageInfo Info
+        {
+            get { return info_; }
+        }
+        
+        public MessageData Data
+        {
+            get { return data_; }
+        }
+        
+        public int Size
+        {
+            get { return data_.GetInt(0); }
+        }
+        
+        public string RequestId
+        {
+            set { data_.SetUString(8, value); }
+            
+            get { return data_.GetUString(8); }
+        }
+        
+        public int GetRequestIdLength()
+        {
+            return data_.GetUStringLength(8);
+        }
+        
+        public void SetRequestId(char[] value, int offset, int count)
+        {
+            data_.SetUString(8, value, offset, count);
+        }
+        
+        public void GetRequestId(char[] value, int offset)
+        {
+            data_.GetUString(8, value, offset);
+        }
+        
+        public void ReadRequestId(Stream stream, int size)
+        {
+            data_.ReadUString(8, stream, size);
+        }
+        
+        public void WriteRequestId(Stream stream)
+        {
+            data_.WriteUString(8, stream);
+        }
+        
+        public UStringArray Symbols
+        {
+            get { return new UStringArray(data_, 16); }
+        }
+        
+        public QuoteHistorySymbolsReport Clone()
+        {
+            MessageData data = data_.Clone();
+            
+            return new QuoteHistorySymbolsReport(info_, data);
+        }
+        
+        public void Reset()
+        {
+            data_.Reset(24);
+        }
+        
+        public override string ToString()
+        {
+            return data_.ToString(info_);
+        }
+        
+        MessageInfo info_;
+        MessageData data_;
+    }
+    
+    public struct QuoteHistoryPeriodicitiesRequest
+    {
+        public QuoteHistoryPeriodicitiesRequest(int i)
+        {
+            info_ = QuoteHistoryCacheProtocol.Info.QuoteHistoryPeriodicitiesRequest;
+            data_ = new MessageData(16);
+            
+            data_.SetInt(4, 2);
+        }
+        
+        public QuoteHistoryPeriodicitiesRequest(MessageInfo info, MessageData data)
+        {
+            if (! info.Is(QuoteHistoryCacheProtocol.Info.QuoteHistoryPeriodicitiesRequest))
+                throw new Exception("Invalid message type cast operation");
+            
+            info_ = info;
+            data_ = data;
+        }
+        
+        public MessageInfo Info
+        {
+            get { return info_; }
+        }
+        
+        public MessageData Data
+        {
+            get { return data_; }
+        }
+        
+        public int Size
+        {
+            get { return data_.GetInt(0); }
+        }
+        
+        public string RequestId
+        {
+            set { data_.SetUString(8, value); }
+            
+            get { return data_.GetUString(8); }
+        }
+        
+        public int GetRequestIdLength()
+        {
+            return data_.GetUStringLength(8);
+        }
+        
+        public void SetRequestId(char[] value, int offset, int count)
+        {
+            data_.SetUString(8, value, offset, count);
+        }
+        
+        public void GetRequestId(char[] value, int offset)
+        {
+            data_.GetUString(8, value, offset);
+        }
+        
+        public void ReadRequestId(Stream stream, int size)
+        {
+            data_.ReadUString(8, stream, size);
+        }
+        
+        public void WriteRequestId(Stream stream)
+        {
+            data_.WriteUString(8, stream);
+        }
+        
+        public QuoteHistoryPeriodicitiesRequest Clone()
+        {
+            MessageData data = data_.Clone();
+            
+            return new QuoteHistoryPeriodicitiesRequest(info_, data);
+        }
+        
+        public void Reset()
+        {
+            data_.Reset(16);
+        }
+        
+        public override string ToString()
+        {
+            return data_.ToString(info_);
+        }
+        
+        MessageInfo info_;
+        MessageData data_;
+    }
+    
+    public struct QuoteHistoryPeriodicitiesReport
+    {
+        public QuoteHistoryPeriodicitiesReport(int i)
+        {
+            info_ = QuoteHistoryCacheProtocol.Info.QuoteHistoryPeriodicitiesReport;
+            data_ = new MessageData(24);
+            
+            data_.SetInt(4, 3);
+        }
+        
+        public QuoteHistoryPeriodicitiesReport(MessageInfo info, MessageData data)
+        {
+            if (! info.Is(QuoteHistoryCacheProtocol.Info.QuoteHistoryPeriodicitiesReport))
+                throw new Exception("Invalid message type cast operation");
+            
+            info_ = info;
+            data_ = data;
+        }
+        
+        public MessageInfo Info
+        {
+            get { return info_; }
+        }
+        
+        public MessageData Data
+        {
+            get { return data_; }
+        }
+        
+        public int Size
+        {
+            get { return data_.GetInt(0); }
+        }
+        
+        public string RequestId
+        {
+            set { data_.SetUString(8, value); }
+            
+            get { return data_.GetUString(8); }
+        }
+        
+        public int GetRequestIdLength()
+        {
+            return data_.GetUStringLength(8);
+        }
+        
+        public void SetRequestId(char[] value, int offset, int count)
+        {
+            data_.SetUString(8, value, offset, count);
+        }
+        
+        public void GetRequestId(char[] value, int offset)
+        {
+            data_.GetUString(8, value, offset);
+        }
+        
+        public void ReadRequestId(Stream stream, int size)
+        {
+            data_.ReadUString(8, stream, size);
+        }
+        
+        public void WriteRequestId(Stream stream)
+        {
+            data_.WriteUString(8, stream);
+        }
+        
+        public UStringArray Periodicities
+        {
+            get { return new UStringArray(data_, 16); }
+        }
+        
+        public QuoteHistoryPeriodicitiesReport Clone()
+        {
+            MessageData data = data_.Clone();
+            
+            return new QuoteHistoryPeriodicitiesReport(info_, data);
+        }
+        
+        public void Reset()
+        {
+            data_.Reset(24);
+        }
+        
+        public override string ToString()
+        {
+            return data_.ToString(info_);
+        }
+        
+        MessageInfo info_;
+        MessageData data_;
+    }
+    
     public struct QueryQuoteHistoryBarsRequest
     {
         public QueryQuoteHistoryBarsRequest(int i)
@@ -413,7 +771,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryBarsRequest;
             data_ = new MessageData(48);
             
-            data_.SetInt(4, 0);
+            data_.SetInt(4, 4);
         }
         
         public QueryQuoteHistoryBarsRequest(MessageInfo info, MessageData data)
@@ -585,7 +943,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryBarsReport;
             data_ = new MessageData(24);
             
-            data_.SetInt(4, 1);
+            data_.SetInt(4, 5);
         }
         
         public QueryQuoteHistoryBarsReport(MessageInfo info, MessageData data)
@@ -677,7 +1035,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryTicksRequest;
             data_ = new MessageData(37);
             
-            data_.SetInt(4, 2);
+            data_.SetInt(4, 6);
         }
         
         public QueryQuoteHistoryTicksRequest(MessageInfo info, MessageData data)
@@ -817,7 +1175,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryTicksReport;
             data_ = new MessageData(24);
             
-            data_.SetInt(4, 3);
+            data_.SetInt(4, 7);
         }
         
         public QueryQuoteHistoryTicksReport(MessageInfo info, MessageData data)
@@ -909,7 +1267,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryReject;
             data_ = new MessageData(24);
             
-            data_.SetInt(4, 4);
+            data_.SetInt(4, 8);
         }
         
         public QueryQuoteHistoryReject(MessageInfo info, MessageData data)
@@ -1023,6 +1381,26 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
     
     public class Is
     {
+        public static bool QuoteHistorySymbolsRequest(Message message)
+        {
+            return message.Info.Is(Info.QuoteHistorySymbolsRequest);
+        }
+        
+        public static bool QuoteHistorySymbolsReport(Message message)
+        {
+            return message.Info.Is(Info.QuoteHistorySymbolsReport);
+        }
+        
+        public static bool QuoteHistoryPeriodicitiesRequest(Message message)
+        {
+            return message.Info.Is(Info.QuoteHistoryPeriodicitiesRequest);
+        }
+        
+        public static bool QuoteHistoryPeriodicitiesReport(Message message)
+        {
+            return message.Info.Is(Info.QuoteHistoryPeriodicitiesReport);
+        }
+        
         public static bool QueryQuoteHistoryBarsRequest(Message message)
         {
             return message.Info.Is(Info.QueryQuoteHistoryBarsRequest);
@@ -1051,6 +1429,46 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
     
     public class Cast
     {
+        public static Message Message(QuoteHistorySymbolsRequest message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
+        public static QuoteHistorySymbolsRequest QuoteHistorySymbolsRequest(Message message)
+        {
+            return new QuoteHistorySymbolsRequest(message.Info, message.Data);
+        }
+        
+        public static Message Message(QuoteHistorySymbolsReport message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
+        public static QuoteHistorySymbolsReport QuoteHistorySymbolsReport(Message message)
+        {
+            return new QuoteHistorySymbolsReport(message.Info, message.Data);
+        }
+        
+        public static Message Message(QuoteHistoryPeriodicitiesRequest message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
+        public static QuoteHistoryPeriodicitiesRequest QuoteHistoryPeriodicitiesRequest(Message message)
+        {
+            return new QuoteHistoryPeriodicitiesRequest(message.Info, message.Data);
+        }
+        
+        public static Message Message(QuoteHistoryPeriodicitiesReport message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
+        public static QuoteHistoryPeriodicitiesReport QuoteHistoryPeriodicitiesReport(Message message)
+        {
+            return new QuoteHistoryPeriodicitiesReport(message.Info, message.Data);
+        }
+        
         public static Message Message(QueryQuoteHistoryBarsRequest message)
         {
             return new Message(message.Info, message.Data);
@@ -1112,6 +1530,10 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             ConstructLevel2Value();
             ConstructLevel2Collection();
             ConstructTick();
+            ConstructQuoteHistorySymbolsRequest();
+            ConstructQuoteHistorySymbolsReport();
+            ConstructQuoteHistoryPeriodicitiesRequest();
+            ConstructQuoteHistoryPeriodicitiesReport();
             ConstructQueryQuoteHistoryBarsRequest();
             ConstructQueryQuoteHistoryBarsReport();
             ConstructQueryQuoteHistoryTicksRequest();
@@ -1294,6 +1716,90 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             Tick.fields[1] = Level2;
         }
         
+        static void ConstructQuoteHistorySymbolsRequest()
+        {
+            FieldInfo RequestId = new FieldInfo();
+            RequestId.name = "RequestId";
+            RequestId.offset = 8;
+            RequestId.type = FieldType.UString;
+            RequestId.optional = false;
+            RequestId.repeatable = false;
+            
+            QuoteHistorySymbolsRequest = new MessageInfo();
+            QuoteHistorySymbolsRequest.name = "QuoteHistorySymbolsRequest";
+            QuoteHistorySymbolsRequest.id = 0;
+            QuoteHistorySymbolsRequest.minSize = 16;
+            QuoteHistorySymbolsRequest.fields = new FieldInfo[1];
+            QuoteHistorySymbolsRequest.fields[0] = RequestId;
+        }
+        
+        static void ConstructQuoteHistorySymbolsReport()
+        {
+            FieldInfo RequestId = new FieldInfo();
+            RequestId.name = "RequestId";
+            RequestId.offset = 8;
+            RequestId.type = FieldType.UString;
+            RequestId.optional = false;
+            RequestId.repeatable = false;
+            
+            FieldInfo Symbols = new FieldInfo();
+            Symbols.name = "Symbols";
+            Symbols.offset = 16;
+            Symbols.type = FieldType.UString;
+            Symbols.optional = false;
+            Symbols.repeatable = true;
+            
+            QuoteHistorySymbolsReport = new MessageInfo();
+            QuoteHistorySymbolsReport.name = "QuoteHistorySymbolsReport";
+            QuoteHistorySymbolsReport.id = 1;
+            QuoteHistorySymbolsReport.minSize = 24;
+            QuoteHistorySymbolsReport.fields = new FieldInfo[2];
+            QuoteHistorySymbolsReport.fields[0] = RequestId;
+            QuoteHistorySymbolsReport.fields[1] = Symbols;
+        }
+        
+        static void ConstructQuoteHistoryPeriodicitiesRequest()
+        {
+            FieldInfo RequestId = new FieldInfo();
+            RequestId.name = "RequestId";
+            RequestId.offset = 8;
+            RequestId.type = FieldType.UString;
+            RequestId.optional = false;
+            RequestId.repeatable = false;
+            
+            QuoteHistoryPeriodicitiesRequest = new MessageInfo();
+            QuoteHistoryPeriodicitiesRequest.name = "QuoteHistoryPeriodicitiesRequest";
+            QuoteHistoryPeriodicitiesRequest.id = 2;
+            QuoteHistoryPeriodicitiesRequest.minSize = 16;
+            QuoteHistoryPeriodicitiesRequest.fields = new FieldInfo[1];
+            QuoteHistoryPeriodicitiesRequest.fields[0] = RequestId;
+        }
+        
+        static void ConstructQuoteHistoryPeriodicitiesReport()
+        {
+            FieldInfo RequestId = new FieldInfo();
+            RequestId.name = "RequestId";
+            RequestId.offset = 8;
+            RequestId.type = FieldType.UString;
+            RequestId.optional = false;
+            RequestId.repeatable = false;
+            
+            FieldInfo Periodicities = new FieldInfo();
+            Periodicities.name = "Periodicities";
+            Periodicities.offset = 16;
+            Periodicities.type = FieldType.UString;
+            Periodicities.optional = false;
+            Periodicities.repeatable = true;
+            
+            QuoteHistoryPeriodicitiesReport = new MessageInfo();
+            QuoteHistoryPeriodicitiesReport.name = "QuoteHistoryPeriodicitiesReport";
+            QuoteHistoryPeriodicitiesReport.id = 3;
+            QuoteHistoryPeriodicitiesReport.minSize = 24;
+            QuoteHistoryPeriodicitiesReport.fields = new FieldInfo[2];
+            QuoteHistoryPeriodicitiesReport.fields[0] = RequestId;
+            QuoteHistoryPeriodicitiesReport.fields[1] = Periodicities;
+        }
+        
         static void ConstructQueryQuoteHistoryBarsRequest()
         {
             FieldInfo RequestId = new FieldInfo();
@@ -1341,7 +1847,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             
             QueryQuoteHistoryBarsRequest = new MessageInfo();
             QueryQuoteHistoryBarsRequest.name = "QueryQuoteHistoryBarsRequest";
-            QueryQuoteHistoryBarsRequest.id = 0;
+            QueryQuoteHistoryBarsRequest.id = 4;
             QueryQuoteHistoryBarsRequest.minSize = 48;
             QueryQuoteHistoryBarsRequest.fields = new FieldInfo[6];
             QueryQuoteHistoryBarsRequest.fields[0] = RequestId;
@@ -1371,7 +1877,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             
             QueryQuoteHistoryBarsReport = new MessageInfo();
             QueryQuoteHistoryBarsReport.name = "QueryQuoteHistoryBarsReport";
-            QueryQuoteHistoryBarsReport.id = 1;
+            QueryQuoteHistoryBarsReport.id = 5;
             QueryQuoteHistoryBarsReport.minSize = 24;
             QueryQuoteHistoryBarsReport.fields = new FieldInfo[2];
             QueryQuoteHistoryBarsReport.fields[0] = RequestId;
@@ -1417,7 +1923,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             
             QueryQuoteHistoryTicksRequest = new MessageInfo();
             QueryQuoteHistoryTicksRequest.name = "QueryQuoteHistoryTicksRequest";
-            QueryQuoteHistoryTicksRequest.id = 2;
+            QueryQuoteHistoryTicksRequest.id = 6;
             QueryQuoteHistoryTicksRequest.minSize = 37;
             QueryQuoteHistoryTicksRequest.fields = new FieldInfo[5];
             QueryQuoteHistoryTicksRequest.fields[0] = RequestId;
@@ -1446,7 +1952,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             
             QueryQuoteHistoryTicksReport = new MessageInfo();
             QueryQuoteHistoryTicksReport.name = "QueryQuoteHistoryTicksReport";
-            QueryQuoteHistoryTicksReport.id = 3;
+            QueryQuoteHistoryTicksReport.id = 7;
             QueryQuoteHistoryTicksReport.minSize = 24;
             QueryQuoteHistoryTicksReport.fields = new FieldInfo[2];
             QueryQuoteHistoryTicksReport.fields[0] = RequestId;
@@ -1471,7 +1977,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             
             QueryQuoteHistoryReject = new MessageInfo();
             QueryQuoteHistoryReject.name = "QueryQuoteHistoryReject";
-            QueryQuoteHistoryReject.id = 4;
+            QueryQuoteHistoryReject.id = 8;
             QueryQuoteHistoryReject.minSize = 24;
             QueryQuoteHistoryReject.fields = new FieldInfo[2];
             QueryQuoteHistoryReject.fields[0] = RequestId;
@@ -1484,6 +1990,10 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
             QuoteHistoryCacheProtocol.name = "QuoteHistoryCacheProtocol";
             QuoteHistoryCacheProtocol.majorVersion = 0;
             QuoteHistoryCacheProtocol.minorVersion = 0;
+            QuoteHistoryCacheProtocol.AddMessageInfo(QuoteHistorySymbolsRequest);
+            QuoteHistoryCacheProtocol.AddMessageInfo(QuoteHistorySymbolsReport);
+            QuoteHistoryCacheProtocol.AddMessageInfo(QuoteHistoryPeriodicitiesRequest);
+            QuoteHistoryCacheProtocol.AddMessageInfo(QuoteHistoryPeriodicitiesReport);
             QuoteHistoryCacheProtocol.AddMessageInfo(QueryQuoteHistoryBarsRequest);
             QuoteHistoryCacheProtocol.AddMessageInfo(QueryQuoteHistoryBarsReport);
             QuoteHistoryCacheProtocol.AddMessageInfo(QueryQuoteHistoryTicksRequest);
@@ -1497,6 +2007,10 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         public static GroupInfo Level2Value;
         public static GroupInfo Level2Collection;
         public static GroupInfo Tick;
+        public static MessageInfo QuoteHistorySymbolsRequest;
+        public static MessageInfo QuoteHistorySymbolsReport;
+        public static MessageInfo QuoteHistoryPeriodicitiesRequest;
+        public static MessageInfo QuoteHistoryPeriodicitiesReport;
         public static MessageInfo QueryQuoteHistoryBarsRequest;
         public static MessageInfo QueryQuoteHistoryBarsReport;
         public static MessageInfo QueryQuoteHistoryTicksRequest;

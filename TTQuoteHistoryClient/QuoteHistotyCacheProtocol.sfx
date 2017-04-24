@@ -40,6 +40,28 @@ protocol QuoteHistoryCacheProtocol
         Level2Collection Level2;
     }
 
+    message QuoteHistorySymbolsRequest
+    {
+        ustring RequestId;
+    };
+
+    message QuoteHistorySymbolsReport
+    {
+        ustring RequestId;
+        ustring[] Symbols;
+    };
+
+    message QuoteHistoryPeriodicitiesRequest
+    {
+        ustring RequestId;
+    };
+
+    message QuoteHistoryPeriodicitiesReport
+    {
+        ustring RequestId;
+        ustring[] Periodicities;
+    };
+
     message QueryQuoteHistoryBarsRequest
     {
         ustring RequestId;

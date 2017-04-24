@@ -93,7 +93,41 @@ namespace TTQuoteHistoryClient
 
         private void OnReceive(ClientSession clientSession, Message message)
         {
-            if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QueryQuoteHistoryBarsReport(message))
+            if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QuoteHistorySymbolsReport(message))
+            {
+                var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QuoteHistorySymbolsReport(message);
+                var token = TryGetAsuncCallToken(report.RequestId);
+                if (token != null)
+                {
+                    var result = new List<string>();
+                    for (int i = 0; i < report.Symbols.Length; i++)
+                    {
+                        var symbol = report.Symbols[i];
+                        result.Add(symbol);
+                    }
+
+                    token.Result = result;
+                    token.WaitHandle.Set();
+                }
+            }
+            else if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QuoteHistoryPeriodicitiesReport(message))
+            {
+                var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QuoteHistoryPeriodicitiesReport(message);
+                var token = TryGetAsuncCallToken(report.RequestId);
+                if (token != null)
+                {
+                    var result = new List<string>();
+                    for (int i = 0; i < report.Periodicities.Length; i++)
+                    {
+                        var symbol = report.Periodicities[i];
+                        result.Add(symbol);
+                    }
+
+                    token.Result = result;
+                    token.WaitHandle.Set();
+                }
+            }
+            else if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QueryQuoteHistoryBarsReport(message))
             {
                 var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QueryQuoteHistoryBarsReport(message);
                 var token = TryGetAsuncCallToken(report.RequestId);
@@ -205,6 +239,116 @@ namespace TTQuoteHistoryClient
         #endregion
 
         #region Quote History cache
+
+        public List<string> GetSupportedSymbols() { return ConvertToSync(() => GetSupportedSymbolsAsync().Result); }
+
+        public Task<List<string>> GetSupportedSymbolsAsync()
+        {
+            return GetSupportedSymbolsAsync(Timeout);
+        }
+
+        public Task<List<string>> GetSupportedSymbolsAsync(TimeSpan timeout)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            return Task.Factory.StartNew(() =>
+            {
+                // Create a new QH cache request
+                var request = new QuoteHistorySymbolsRequest(0)
+                {
+                    RequestId = Guid.NewGuid().ToString()
+                };
+
+                // Create a new async call token
+                var token = new AsyncCallToken { RequestId = request.RequestId };
+                lock (_locker)
+                {
+                    _callTokens[token.RequestId] = token;
+                }
+
+                try
+                {
+                    // Send request to the server
+                    _session.Send(SoftFX.Net.QuoteHistoryCacheProtocol.Cast.Message(request));
+
+                    // Wait for complition
+                    if (token.WaitHandle.WaitOne(timeout))
+                    {
+                        if (token.Result != null)
+                            return token.Result as List<string>;
+                        else if (token.Reject != null)
+                            throw new Exception(token.Reject);
+                        else
+                            throw new Exception("Internal error");
+                    }
+                    else
+                        throw new Exception("Timeout");
+                }
+                finally
+                {
+                    lock (_locker)
+                    {
+                        _callTokens.Remove(token.RequestId);
+                    }
+                }
+            });
+        }
+
+        public List<string> GetSupportedPeriodicities() { return ConvertToSync(() => GetSupportedPeriodicitiesAsync().Result); }
+
+        public Task<List<string>> GetSupportedPeriodicitiesAsync()
+        {
+            return GetSupportedPeriodicitiesAsync(Timeout);
+        }
+
+        public Task<List<string>> GetSupportedPeriodicitiesAsync(TimeSpan timeout)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            return Task.Factory.StartNew(() =>
+            {
+                // Create a new QH cache request
+                var request = new QuoteHistoryPeriodicitiesRequest(0)
+                {
+                    RequestId = Guid.NewGuid().ToString()
+                };
+
+                // Create a new async call token
+                var token = new AsyncCallToken { RequestId = request.RequestId };
+                lock (_locker)
+                {
+                    _callTokens[token.RequestId] = token;
+                }
+
+                try
+                {
+                    // Send request to the server
+                    _session.Send(SoftFX.Net.QuoteHistoryCacheProtocol.Cast.Message(request));
+
+                    // Wait for complition
+                    if (token.WaitHandle.WaitOne(timeout))
+                    {
+                        if (token.Result != null)
+                            return token.Result as List<string>;
+                        else if (token.Reject != null)
+                            throw new Exception(token.Reject);
+                        else
+                            throw new Exception("Internal error");
+                    }
+                    else
+                        throw new Exception("Timeout");
+                }
+                finally
+                {
+                    lock (_locker)
+                    {
+                        _callTokens.Remove(token.RequestId);
+                    }
+                }
+            });
+        }
 
         public List<Bar> QueryQuoteHistoryBars(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType) { return ConvertToSync(() => QueryQuoteHistoryBarsAsync(timestamp, count, symbol, pereodicity, priceType).Result); }
 
