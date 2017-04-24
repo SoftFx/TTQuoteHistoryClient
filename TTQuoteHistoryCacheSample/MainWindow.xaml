@@ -1,0 +1,47 @@
+﻿<Window x:Class="TTQuoteHistoryCacheSample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TTQuoteHistoryCacheSample"
+        xmlns:business="clr-namespace:TickTrader.Common.Business;assembly=TickTrader.BusinessObjects"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:extToolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit/extended"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="785.417" Width="1013.349" Closed="Window_Closed">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Label x:Name="labelAddress" Grid.Row="0" Grid.Column="0" Content="Address:" HorizontalAlignment="Right" Margin="3"/>
+        <TextBox x:Name="textAddress" Grid.Row="0" Grid.Column="1" TextWrapping="NoWrap" Margin="3"/>
+        <Button x:Name="connect" Content="Connect" Grid.Row="1" Grid.Column="1" Width="300" Margin="3" Click="connect_Click"/>
+        <Label x:Name="labelSymbol" Grid.Row="2" Grid.Column="0" Content="Symbol:" HorizontalAlignment="Right" Margin="3"/>
+        <ComboBox x:Name="comboboxSymbol" Grid.Row="2" Grid.Column="1" Margin="3"/>
+        <Label x:Name="labelPeriodicity" Grid.Row="3" Grid.Column="0" Content="Periodicity:" HorizontalAlignment="Right" Margin="3"/>
+        <ComboBox x:Name="comboboxPeriodicity" Grid.Row="3" Grid.Column="1" Margin="3"/>
+        <Label x:Name="labelPriceType" Grid.Row="4" Grid.Column="0" Content="Price type:" HorizontalAlignment="Right" Margin="3"/>
+        <ComboBox x:Name="comboboxPriceType" Grid.Row="4" Grid.Column="1" Margin="3"/>
+        <Label x:Name="labelTimestamp" Grid.Row="5" Grid.Column="0" Content="Timestamp:" HorizontalAlignment="Right" Margin="3"/>
+        <extToolkit:DateTimePicker x:Name="pickerTimestamp" Grid.Row="5" Grid.Column="1" Margin="3" />
+        <Label x:Name="labelCount" Grid.Row="6" Grid.Column="0" Content="Count:" HorizontalAlignment="Right" Margin="3"/>
+        <TextBox x:Name="textCount" Grid.Row="6" Grid.Column="1" TextWrapping="NoWrap" Margin="3"/>
+        <Button x:Name="request" Content="Get History" Grid.Row="7" Grid.Column="1" Width="300" Margin="3" Click="request_Click"/>
+        <TextBox x:Name="textHistory" Grid.Row="8" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" Height="500" Width="450" Margin="4,4,4,4"/>
+        <TextBox x:Name="textIntervals" Grid.Row="8" Grid.Column="2" TextWrapping="Wrap" AcceptsReturn="True" Height="500" Width="450" Margin="4,4,4,4"/>
+    </Grid>
+</Window>

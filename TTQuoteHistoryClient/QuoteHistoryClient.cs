@@ -119,8 +119,8 @@ namespace TTQuoteHistoryClient
                     var result = new List<string>();
                     for (int i = 0; i < report.Periodicities.Length; i++)
                     {
-                        var symbol = report.Periodicities[i];
-                        result.Add(symbol);
+                        var periodicity = report.Periodicities[i];
+                        result.Add(periodicity);
                     }
 
                     token.Result = result;
