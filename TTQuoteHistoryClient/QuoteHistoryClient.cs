@@ -253,14 +253,9 @@ namespace TTQuoteHistoryClient
 
         #region Quote History cache
 
-        public List<string> GetSupportedSymbols() { return ConvertToSync(() => GetSupportedSymbolsAsync().Result); }
+        public List<string> GetSupportedSymbols() { return ConvertToSync(GetSupportedSymbolsAsync(), Timeout); }
 
         public Task<List<string>> GetSupportedSymbolsAsync()
-        {
-            return GetSupportedSymbolsAsync(Timeout);
-        }
-
-        public Task<List<string>> GetSupportedSymbolsAsync(TimeSpan timeout)
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
@@ -295,14 +290,9 @@ namespace TTQuoteHistoryClient
             return token.Tcs.Task;
         }
 
-        public List<string> GetSupportedPeriodicities() { return ConvertToSync(() => GetSupportedPeriodicitiesAsync().Result); }
+        public List<string> GetSupportedPeriodicities() { return ConvertToSync(GetSupportedPeriodicitiesAsync(), Timeout); }
 
         public Task<List<string>> GetSupportedPeriodicitiesAsync()
-        {
-            return GetSupportedPeriodicitiesAsync(Timeout);
-        }
-
-        public Task<List<string>> GetSupportedPeriodicitiesAsync(TimeSpan timeout)
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
@@ -337,14 +327,9 @@ namespace TTQuoteHistoryClient
             return token.Tcs.Task;
         }
 
-        public List<Bar> QueryQuoteHistoryBars(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType) { return ConvertToSync(() => QueryQuoteHistoryBarsAsync(timestamp, count, symbol, pereodicity, priceType).Result); }
+        public List<Bar> QueryQuoteHistoryBars(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType) { return ConvertToSync(QueryQuoteHistoryBarsAsync(timestamp, count, symbol, pereodicity, priceType), Timeout); }
 
         public Task<List<Bar>> QueryQuoteHistoryBarsAsync(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType)
-        {
-            return QueryQuoteHistoryBarsAsync(timestamp, count, symbol, pereodicity, priceType, Timeout);
-        }
-
-        public Task<List<Bar>> QueryQuoteHistoryBarsAsync(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType, TimeSpan timeout)
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
@@ -384,14 +369,9 @@ namespace TTQuoteHistoryClient
             return token.Tcs.Task;
         }
 
-        public List<Tick> QueryQuoteHistoryTicks(DateTime timestamp, int count, string symbol, bool level2) { return ConvertToSync(() => QueryQuoteHistoryTicksAsync(timestamp, count, symbol, level2).Result); }
+        public List<Tick> QueryQuoteHistoryTicks(DateTime timestamp, int count, string symbol, bool level2) { return ConvertToSync(QueryQuoteHistoryTicksAsync(timestamp, count, symbol, level2), Timeout); }
 
         public Task<List<Tick>> QueryQuoteHistoryTicksAsync(DateTime timestamp, int count, string symbol, bool level2)
-        {
-            return QueryQuoteHistoryTicksAsync(timestamp, count, symbol, level2, Timeout);
-        }
-
-        public Task<List<Tick>> QueryQuoteHistoryTicksAsync(DateTime timestamp, int count, string symbol, bool level2, TimeSpan timeout)
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
@@ -434,11 +414,12 @@ namespace TTQuoteHistoryClient
 
         #region Async helpers
 
-        public static void ConvertToSync(Action method)
+        public static void ConvertToSync(Task task, TimeSpan timeout)
         {
             try
             {
-                method();
+                if (!task.Wait(Timeout))
+                    throw new TimeoutException("Method call timeout");
             }
             catch (AggregateException ex)
             {
@@ -446,11 +427,14 @@ namespace TTQuoteHistoryClient
             }
         }
 
-        public static TResult ConvertToSync<TResult>(Func<TResult> method)
+        public static TResult ConvertToSync<TResult>(Task<TResult> task, TimeSpan timeout)
         {
             try
             {
-                return method();
+                if (!task.Wait(Timeout))
+                    throw new TimeoutException("Method call timeout");
+
+                return task.Result;
             }
             catch (AggregateException ex)
             {
