@@ -4,13 +4,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
     using System.IO;
     using SoftFX.Net.Core;
     
-    public enum PriceType
+    enum PriceType
     {
         Bid = 0,
         Ask = 1,
     }
     
-    public struct PriceTypeArray
+    struct PriceTypeArray
     {
         public PriceTypeArray(MessageData data, int offset)
         {
@@ -47,7 +47,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct PriceTypeNullArray
+    struct PriceTypeNullArray
     {
         public PriceTypeNullArray(MessageData data, int offset)
         {
@@ -96,7 +96,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct Bar
+    struct Bar
     {
         public Bar(MessageData data, int offset)
         {
@@ -150,7 +150,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct BarArray
+    struct BarArray
     {
         public BarArray(MessageData data, int offset)
         {
@@ -182,7 +182,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct TickId
+    struct TickId
     {
         public TickId(MessageData data, int offset)
         {
@@ -208,7 +208,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct TickIdArray
+    struct TickIdArray
     {
         public TickIdArray(MessageData data, int offset)
         {
@@ -240,7 +240,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct Level2Value
+    struct Level2Value
     {
         public Level2Value(MessageData data, int offset)
         {
@@ -266,7 +266,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct Level2ValueArray
+    struct Level2ValueArray
     {
         public Level2ValueArray(MessageData data, int offset)
         {
@@ -298,7 +298,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct Level2Collection
+    struct Level2Collection
     {
         public Level2Collection(MessageData data, int offset)
         {
@@ -320,7 +320,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct Level2CollectionArray
+    struct Level2CollectionArray
     {
         public Level2CollectionArray(MessageData data, int offset)
         {
@@ -352,7 +352,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct Tick
+    struct Tick
     {
         public Tick(MessageData data, int offset)
         {
@@ -374,7 +374,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct TickArray
+    struct TickArray
     {
         public TickArray(MessageData data, int offset)
         {
@@ -406,8 +406,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         int offset_;
     }
     
-    public struct QuoteHistorySymbolsRequest
+    struct QuoteHistorySymbolsRequest
     {
+        public static implicit operator Message(QuoteHistorySymbolsRequest message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QuoteHistorySymbolsRequest(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QuoteHistorySymbolsRequest;
@@ -493,8 +498,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QuoteHistorySymbolsReport
+    struct QuoteHistorySymbolsReport
     {
+        public static implicit operator Message(QuoteHistorySymbolsReport message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QuoteHistorySymbolsReport(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QuoteHistorySymbolsReport;
@@ -585,8 +595,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QuoteHistoryPeriodicitiesRequest
+    struct QuoteHistoryPeriodicitiesRequest
     {
+        public static implicit operator Message(QuoteHistoryPeriodicitiesRequest message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QuoteHistoryPeriodicitiesRequest(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QuoteHistoryPeriodicitiesRequest;
@@ -672,8 +687,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QuoteHistoryPeriodicitiesReport
+    struct QuoteHistoryPeriodicitiesReport
     {
+        public static implicit operator Message(QuoteHistoryPeriodicitiesReport message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QuoteHistoryPeriodicitiesReport(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QuoteHistoryPeriodicitiesReport;
@@ -764,8 +784,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QueryQuoteHistoryBarsRequest
+    struct QueryQuoteHistoryBarsRequest
     {
+        public static implicit operator Message(QueryQuoteHistoryBarsRequest message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QueryQuoteHistoryBarsRequest(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryBarsRequest;
@@ -936,8 +961,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QueryQuoteHistoryBarsReport
+    struct QueryQuoteHistoryBarsReport
     {
+        public static implicit operator Message(QueryQuoteHistoryBarsReport message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QueryQuoteHistoryBarsReport(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryBarsReport;
@@ -1028,8 +1058,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QueryQuoteHistoryTicksRequest
+    struct QueryQuoteHistoryTicksRequest
     {
+        public static implicit operator Message(QueryQuoteHistoryTicksRequest message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QueryQuoteHistoryTicksRequest(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryTicksRequest;
@@ -1168,8 +1203,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QueryQuoteHistoryTicksReport
+    struct QueryQuoteHistoryTicksReport
     {
+        public static implicit operator Message(QueryQuoteHistoryTicksReport message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QueryQuoteHistoryTicksReport(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryTicksReport;
@@ -1260,8 +1300,13 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public struct QueryQuoteHistoryReject
+    struct QueryQuoteHistoryReject
     {
+        public static implicit operator Message(QueryQuoteHistoryReject message)
+        {
+            return new Message(message.Info, message.Data);
+        }
+        
         public QueryQuoteHistoryReject(int i)
         {
             info_ = QuoteHistoryCacheProtocol.Info.QueryQuoteHistoryReject;
@@ -1379,7 +1424,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         MessageData data_;
     }
     
-    public class Is
+    class Is
     {
         public static bool QuoteHistorySymbolsRequest(Message message)
         {
@@ -1427,7 +1472,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         }
     }
     
-    public class Cast
+    class Cast
     {
         public static Message Message(QuoteHistorySymbolsRequest message)
         {
@@ -1520,7 +1565,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         }
     }
     
-    public class Info
+    class Info
     {
         static Info()
         {
