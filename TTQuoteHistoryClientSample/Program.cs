@@ -82,6 +82,7 @@ namespace TTQuoteHistoryClientSample
                 {
                     // Connect to the server
                     client.Connect();
+                    client.WaitForConnected();
 
                     // Request the server
                     if (level2)
@@ -108,6 +109,7 @@ namespace TTQuoteHistoryClientSample
 
                     // Disconnect to the server
                     client.Disconnect();
+                    client.WaitForDisconnected();
                 }
             }
             catch (Exception ex)

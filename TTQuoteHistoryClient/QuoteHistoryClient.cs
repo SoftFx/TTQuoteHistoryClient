@@ -63,7 +63,7 @@ namespace TTQuoteHistoryClient
 
         #endregion
 
-            #region Constructors
+        #region Constructors
 
         public QuoteHistoryClient(string address) : this(address, 5020)
         {
@@ -77,7 +77,7 @@ namespace TTQuoteHistoryClient
         {
             _address = address;
             options.ConnectPort = port;
-            _session = new ClientSession("QuoteHistoryClient", SoftFX.Net.QuoteHistoryCacheProtocol.Info.QuoteHistoryCacheProtocol, options);
+            _session = new ClientSession("QuoteHistoryClient", Info.QuoteHistoryCacheProtocol, options);
             _session.OnConnect += OnConnect;
             _session.OnConnectError += OnConnectError;
             _session.OnDisconnect += OnDisconnect;
@@ -87,6 +87,7 @@ namespace TTQuoteHistoryClient
         private void OnConnect(ClientSession clientSession)
         {
             IsConnected = true;
+            Connected?.Invoke(this);
         }
 
         private void OnConnectError(ClientSession clientSession)
@@ -105,13 +106,14 @@ namespace TTQuoteHistoryClient
             }
 
             IsConnected = false;
+            Disconnected?.Invoke(this);
         }
 
         private void OnReceive(ClientSession clientSession, Message message)
         {
-            if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QuoteHistorySymbolsReport(message))
+            if (Is.QuoteHistorySymbolsReport(message))
             {
-                var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QuoteHistorySymbolsReport(message);
+                var report = Cast.QuoteHistorySymbolsReport(message);
                 var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<string>>;
                 if (token != null)
                 {
@@ -125,9 +127,9 @@ namespace TTQuoteHistoryClient
                     RemoveAsyncCallToken(token.RequestId);
                 }
             }
-            else if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QuoteHistoryPeriodicitiesReport(message))
+            else if (Is.QuoteHistoryPeriodicitiesReport(message))
             {
-                var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QuoteHistoryPeriodicitiesReport(message);
+                var report = Cast.QuoteHistoryPeriodicitiesReport(message);
                 var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<string>>;
                 if (token != null)
                 {
@@ -141,9 +143,9 @@ namespace TTQuoteHistoryClient
                     RemoveAsyncCallToken(token.RequestId);
                 }
             }
-            else if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QueryQuoteHistoryBarsReport(message))
+            else if (Is.QueryQuoteHistoryBarsReport(message))
             {
-                var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QueryQuoteHistoryBarsReport(message);
+                var report = Cast.QueryQuoteHistoryBarsReport(message);
                 var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<Bar>>;
                 if (token != null)
                 {
@@ -166,9 +168,9 @@ namespace TTQuoteHistoryClient
                     RemoveAsyncCallToken(token.RequestId);
                 }
             }
-            else if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QueryQuoteHistoryTicksReport(message))
+            else if (Is.QueryQuoteHistoryTicksReport(message))
             {
-                var report = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QueryQuoteHistoryTicksReport(message);
+                var report = Cast.QueryQuoteHistoryTicksReport(message);
                 var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<Tick>>;
                 if (token != null)
                 {
@@ -214,9 +216,9 @@ namespace TTQuoteHistoryClient
                     RemoveAsyncCallToken(token.RequestId);
                 }
             }
-            else if (SoftFX.Net.QuoteHistoryCacheProtocol.Is.QueryQuoteHistoryReject(message))
+            else if (Is.QueryQuoteHistoryReject(message))
             {
-                var reject = SoftFX.Net.QuoteHistoryCacheProtocol.Cast.QueryQuoteHistoryReject(message);
+                var reject = Cast.QueryQuoteHistoryReject(message);
                 var token = TryGetAsyncCallToken(reject.RequestId) as AsyncCallToken<string>;
                 if (token != null)
                 {
@@ -231,12 +233,22 @@ namespace TTQuoteHistoryClient
 
         #region Connection
 
+        public delegate void ConnectedDelegate(QuoteHistoryClient client);
+        public delegate void DisconnectedDelegate(QuoteHistoryClient client);
+
+        public event ConnectedDelegate Connected;
+        public event ConnectedDelegate Disconnected;
+
         public bool IsConnected { get; private set; }
 
         public void Connect()
         {
             _session.Connect(_address);
-            if (!_session.WaitConnect(_timeout))
+        }
+
+        public void WaitForConnected(int timeout = -1)
+        {
+            if (!_session.WaitConnect(timeout))
             {
                 Disconnect();
                 throw new TimeoutException("Connect timeout");
@@ -246,6 +258,10 @@ namespace TTQuoteHistoryClient
         public void Disconnect()
         {
             _session.Disconnect("Disconnect client");
+        }
+
+        public void WaitForDisconnected(int timeout = -1)
+        {
             _session.Join();
         }
 
@@ -276,7 +292,7 @@ namespace TTQuoteHistoryClient
             try
             {
                 // Send request to the server
-                _session.Send(SoftFX.Net.QuoteHistoryCacheProtocol.Cast.Message(request));
+                _session.Send(Cast.Message(request));
             }
             catch (Exception)
             {
@@ -313,7 +329,7 @@ namespace TTQuoteHistoryClient
             try
             {
                 // Send request to the server
-                _session.Send(SoftFX.Net.QuoteHistoryCacheProtocol.Cast.Message(request));
+                _session.Send(Cast.Message(request));
             }
             catch (Exception)
             {
@@ -355,7 +371,7 @@ namespace TTQuoteHistoryClient
             try
             {
                 // Send request to the server
-                _session.Send(SoftFX.Net.QuoteHistoryCacheProtocol.Cast.Message(request));
+                _session.Send(Cast.Message(request));
             }
             catch (Exception)
             {
@@ -396,7 +412,7 @@ namespace TTQuoteHistoryClient
             try
             {
                 // Send request to the server
-                _session.Send(SoftFX.Net.QuoteHistoryCacheProtocol.Cast.Message(request));
+                _session.Send(Cast.Message(request));
             }
             catch (Exception)
             {
@@ -448,6 +464,8 @@ namespace TTQuoteHistoryClient
 
         #region IDisposable
 
+        bool _disposed;
+
         ~QuoteHistoryClient()
         {
             Dispose(false);
@@ -461,8 +479,12 @@ namespace TTQuoteHistoryClient
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing & !_disposed)
+            {
                 Disconnect();
+                WaitForDisconnected();
+                _disposed = true;
+            }
         }
 
         #endregion

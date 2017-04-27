@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 using TickTrader.BusinessObjects;
 using TickTrader.Common.Business;
 using TTQuoteHistoryCache;
@@ -46,7 +47,10 @@ namespace TTQuoteHistoryCacheSample
         private void InitializeQuoteHistory()
         {
             _historyClient = new QuoteHistoryClient(textAddress.Text);
+            _historyClient.Connected += HistoryClientOnConnected;
+            _historyClient.Disconnected += HistoryClientOnDisconnected;
             _historyClient.Connect();
+            _historyClient.WaitForConnected();
 
             _historyCacheManager = new HistoryCacheManager(_historyClient);
             _historyCacheManager.Initialize();
@@ -66,6 +70,24 @@ namespace TTQuoteHistoryCacheSample
             comboboxPriceType.Items.Add("Ticks");
             comboboxPriceType.Items.Add("Level2");
             comboboxPriceType.SelectedIndex = 0;
+        }
+
+        private void HistoryClientOnConnected(QuoteHistoryClient client)
+        {
+            Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                EnableQuoteHistoryControls(true);
+                connect.Content = "Disconnect";
+            }));
+        }
+
+        private void HistoryClientOnDisconnected(QuoteHistoryClient client)
+        {
+            Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                EnableQuoteHistoryControls(false);
+                connect.Content = "Connect";
+            }));
         }
 
         private void DisposeQuoteHistory()
@@ -105,14 +127,10 @@ namespace TTQuoteHistoryCacheSample
                 if ((connect.Content as string) == "Connect")
                 {
                     InitializeQuoteHistory();
-                    EnableQuoteHistoryControls(true);
-                    connect.Content = "Disconnect";
                 }
                 else
                 {
                     DisposeQuoteHistory();
-                    EnableQuoteHistoryControls(false);
-                    connect.Content = "Connect";
                 }
             }
             catch (Exception ex)
