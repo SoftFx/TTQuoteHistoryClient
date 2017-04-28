@@ -46,11 +46,13 @@ namespace TTQuoteHistoryCacheSample
 
         private void InitializeQuoteHistory()
         {
+            DisposeQuoteHistory();
+
             _historyClient = new QuoteHistoryClient(textAddress.Text);
             _historyClient.Connected += HistoryClientOnConnected;
+            _historyClient.ConnectError += HistoryClientOnConnectError;
             _historyClient.Disconnected += HistoryClientOnDisconnected;
             _historyClient.Connect();
-            _historyClient.WaitForConnected();
 
             _historyCacheManager = new HistoryCacheManager(_historyClient);
             _historyCacheManager.Initialize();
@@ -79,6 +81,11 @@ namespace TTQuoteHistoryCacheSample
                 EnableQuoteHistoryControls(true);
                 connect.Content = "Disconnect";
             }));
+        }
+
+        private void HistoryClientOnConnectError(QuoteHistoryClient client)
+        {
+            Application.Current?.Dispatcher.BeginInvoke(new Action(DisposeQuoteHistory));
         }
 
         private void HistoryClientOnDisconnected(QuoteHistoryClient client)

@@ -93,6 +93,7 @@ namespace TTQuoteHistoryClient
         private void OnConnectError(ClientSession clientSession)
         {
             IsConnected = false;
+            ConnectError?.Invoke(this);
         }
 
         private void OnDisconnect(ClientSession clientSession, string text)
@@ -234,9 +235,11 @@ namespace TTQuoteHistoryClient
         #region Connection
 
         public delegate void ConnectedDelegate(QuoteHistoryClient client);
+        public delegate void ConnectErrorDelegate(QuoteHistoryClient client);
         public delegate void DisconnectedDelegate(QuoteHistoryClient client);
 
         public event ConnectedDelegate Connected;
+        public event ConnectErrorDelegate ConnectError;
         public event ConnectedDelegate Disconnected;
 
         public bool IsConnected { get; private set; }
@@ -244,23 +247,31 @@ namespace TTQuoteHistoryClient
         public void Connect()
         {
             _session.Connect(_address);
-        }
 
-        public void WaitForConnected(int timeout = -1)
-        {
-            if (!_session.WaitConnect(timeout))
+            if (!_session.WaitConnect(_timeout))
             {
                 Disconnect();
                 throw new TimeoutException("Connect timeout");
             }
         }
 
+        public void ConnectAsync()
+        {
+            _session.Connect(_address);
+        }
+
         public void Disconnect()
+        {
+            _session.Disconnect("Disconnect client");
+            _session.Join();
+        }
+
+        public void DisconnectAsync()
         {
             _session.Disconnect("Disconnect client");
         }
 
-        public void WaitForDisconnected(int timeout = -1)
+        public void Join()
         {
             _session.Join();
         }
@@ -481,9 +492,8 @@ namespace TTQuoteHistoryClient
         {
             if (disposing & !_disposed)
             {
-                Disconnect();
-                WaitForDisconnected();
                 _disposed = true;
+                Disconnect();
             }
         }
 
