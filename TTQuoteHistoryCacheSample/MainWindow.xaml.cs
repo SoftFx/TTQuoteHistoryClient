@@ -106,6 +106,9 @@ namespace TTQuoteHistoryCacheSample
             }
             if (_historyClient != null)
             {
+                _historyClient.Connected -= HistoryClientOnConnected;
+                _historyClient.ConnectError -= HistoryClientOnConnectError;
+                _historyClient.Disconnected -= HistoryClientOnDisconnected;
                 _historyClient.Dispose();
                 _historyClient = null;
             }
