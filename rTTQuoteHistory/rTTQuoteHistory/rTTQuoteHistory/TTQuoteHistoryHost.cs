@@ -31,13 +31,13 @@ namespace rTTQuoteHistory
         public static void BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
-            _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour+3, timestamp.Minute, timestamp.Second,
+            _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
                 timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
         }
 
         public static DateTime[] GetBarTime()
         {
-            return _barList.Select(bar => bar.Time).ToArray();
+            return _barList.Select(bar => bar.Time.AddHours(3)).ToArray();
         }
 
         public static double[] GetBarOpen()
@@ -69,13 +69,13 @@ namespace rTTQuoteHistory
         #region Ticks
         public static void TickRequest(DateTime timestamp, double count, string symbol, bool level2)
         {
-            _tickList = _client.QueryQuoteHistoryTicks(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour+3, timestamp.Minute,
+            _tickList = _client.QueryQuoteHistoryTicks(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
                 timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, level2);
         }
 
         public static DateTime[] GetTickDate()
         {
-            return _tickList.Select(tick => tick.Id.Time).ToArray();
+            return _tickList.Select(tick => tick.Id.Time.AddHours(3)).ToArray();
         }
 
         public static double[] GetTickBid()
@@ -145,7 +145,7 @@ namespace rTTQuoteHistory
             {
                 for (int level = 0; level < Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count); level++)
                 {
-                    result.Add(tick.Id.Time);
+                    result.Add(tick.Id.Time.AddHours(3));
                 }
             }
             return result.ToArray();
