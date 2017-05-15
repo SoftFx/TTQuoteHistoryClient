@@ -239,3 +239,31 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+
+#### R-studio.gitignore ####
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# Example code in package build process
+*-Ex.R
+
+# RStudio files
+.Rproj.user
+
+.Rproj*
+*.Rout
+*.log
+man/*
+Storage/*
+*.Rd
+man
+*.userprefs
+examples/*.html
+examples/rsconnect/documents
+RPackage/[Dd]ata/*
+RPackage/Store/*
+
