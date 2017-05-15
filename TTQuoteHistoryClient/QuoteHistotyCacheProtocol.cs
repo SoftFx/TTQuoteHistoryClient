@@ -4,6 +4,1190 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
     using System.IO;
     using SoftFX.Net.Core;
     
+    struct BoolArray
+    {
+        public BoolArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public bool this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetBool(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetBool(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct BoolNullArray
+    {
+        public BoolNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public bool? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetBoolNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetBoolNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct CharArray
+    {
+        public CharArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public char this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetChar(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetChar(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct CharNullArray
+    {
+        public CharNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public char? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetCharNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetCharNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UCharArray
+    {
+        public UCharArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public char this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetUChar(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetUChar(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UCharNullArray
+    {
+        public UCharNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public char? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetUCharNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetUCharNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct ByteArray
+    {
+        public ByteArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public byte this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetByte(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetByte(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct ByteNullArray
+    {
+        public ByteNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public byte? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetByteNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetByteNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct SByteArray
+    {
+        public SByteArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public sbyte this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetSByte(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetSByte(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct SByteNullArray
+    {
+        public SByteNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 1);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public sbyte? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                data_.SetSByteNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 1);
+                return data_.GetSByteNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct ShortArray
+    {
+        public ShortArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 2);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public short this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                data_.SetShort(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                return data_.GetShort(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct ShortNullArray
+    {
+        public ShortNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 2);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public short? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                data_.SetShortNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                return data_.GetShortNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UShortArray
+    {
+        public UShortArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 2);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public ushort this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                data_.SetUShort(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                return data_.GetUShort(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UShortNullArray
+    {
+        public UShortNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 2);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public ushort? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                data_.SetUShortNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 2);
+                return data_.GetUShortNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct IntArray
+    {
+        public IntArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 4);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public int this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                data_.SetInt(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                return data_.GetInt(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct IntNullArray
+    {
+        public IntNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 4);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public int? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                data_.SetIntNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                return data_.GetIntNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UIntArray
+    {
+        public UIntArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 4);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public uint this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                data_.SetUInt(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                return data_.GetUInt(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UIntNullArray
+    {
+        public UIntNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 4);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public uint? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                data_.SetUIntNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 4);
+                return data_.GetUIntNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct LongArray
+    {
+        public LongArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public long this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetLong(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetLong(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct LongNullArray
+    {
+        public LongNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public long? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetLongNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetLongNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct ULongArray
+    {
+        public ULongArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public ulong this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetULong(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetULong(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct ULongNullArray
+    {
+        public ULongNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public ulong? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetULongNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetULongNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct DoubleArray
+    {
+        public DoubleArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public double this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetDouble(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetDouble(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct DoubleNullArray
+    {
+        public DoubleNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public double? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetDoubleNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetDoubleNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct DateTimeArray
+    {
+        public DateTimeArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public DateTime this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetDateTime(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetDateTime(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct DateTimeNullArray
+    {
+        public DateTimeNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public DateTime? this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetDateTimeNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetDateTimeNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct StringArray
+    {
+        public StringArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public string this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetString(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetString(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct StringNullArray
+    {
+        public StringNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public string this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetStringNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetStringNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UStringArray
+    {
+        public UStringArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public string this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetUString(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetUString(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct UStringNullArray
+    {
+        public UStringNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public string this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetUStringNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetUStringNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct BytesArray
+    {
+        public BytesArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public byte[] this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetBytes(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetBytes(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
+    struct BytesNullArray
+    {
+        public BytesNullArray(MessageData data, int offset)
+        {
+            data_ = data;
+            offset_ = offset;
+        }
+        
+        public void Resize(int length)
+        {
+            data_.ResizeArray(offset_, length, 8);
+        }
+        
+        public int Length
+        {
+            get { return data_.GetArrayLength(offset_); }
+        }
+        
+        public byte[] this[int index]
+        {
+            set
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                data_.SetBytesNull(itemOffset, value);
+            }
+            
+            get
+            {
+                int itemOffset = data_.GetArrayItemOffset(offset_, index, 8);
+                return data_.GetBytesNull(itemOffset);
+            }
+        }
+        
+        MessageData data_;
+        int offset_;
+    }
+    
     enum PriceType
     {
         Bid = 0,
@@ -486,7 +1670,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(16);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -583,7 +1767,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(24);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -675,7 +1859,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(16);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -772,7 +1956,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(24);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -949,7 +2133,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(48);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -1046,7 +2230,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(24);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -1191,7 +2375,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(37);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -1288,7 +2472,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(24);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -1412,7 +2596,7 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         public void Reset()
         {
-            data_.Reset(24);
+            data_.Reset(info_.minSize);
         }
         
         public override string ToString()
@@ -1589,20 +2773,20 @@ namespace SoftFX.Net.QuoteHistoryCacheProtocol
         
         static void ConstructPriceType()
         {
-            EnumValue Bid = new EnumValue();
+            EnumMemberInfo Bid = new EnumMemberInfo();
             Bid.name = "Bid";
             Bid.value = 0;
             
-            EnumValue Ask = new EnumValue();
+            EnumMemberInfo Ask = new EnumMemberInfo();
             Ask.name = "Ask";
             Ask.value = 1;
             
             PriceType = new EnumInfo();
             PriceType.name = "PriceType";
             PriceType.minSize = 4;
-            PriceType.values = new EnumValue[2];
-            PriceType.values[0] = Bid;
-            PriceType.values[1] = Ask;
+            PriceType.members = new EnumMemberInfo[2];
+            PriceType.members[0] = Bid;
+            PriceType.members[1] = Ask;
         }
         
         static void ConstructBar()
