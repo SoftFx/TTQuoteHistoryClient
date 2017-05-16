@@ -69,7 +69,7 @@ namespace TTQuoteHistoryClient
         {
         }
 
-        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port) { ConnectMaxCount = 1 })
+        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port) { ConnectMaxCount = 1, ReceiveQueueSize = 1048576, SendBufferSize = 1048576 })
         {
         }
 
@@ -366,7 +366,7 @@ namespace TTQuoteHistoryClient
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
-                Count = count,
+                Count = Math.Min(count, 1000),
                 Symbol = symbol,
                 Periodicity = pereodicity,
                 PriceType = (SoftFX.Net.QuoteHistoryCacheProtocol.PriceType) priceType
@@ -408,7 +408,7 @@ namespace TTQuoteHistoryClient
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
-                Count = count,
+                Count = Math.Min(count, 1000),
                 Symbol = symbol,
                 Level2 = level2
             };
