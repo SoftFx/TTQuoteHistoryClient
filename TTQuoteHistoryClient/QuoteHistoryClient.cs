@@ -366,7 +366,7 @@ namespace TTQuoteHistoryClient
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
-                Count = Math.Min(count, 1000),
+                Count = Math.Min(count, 5000),
                 Symbol = symbol,
                 Periodicity = pereodicity,
                 PriceType = (SoftFX.Net.QuoteHistoryCacheProtocol.PriceType) priceType
