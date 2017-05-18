@@ -262,8 +262,8 @@ namespace TTQuoteHistoryClient
 
         public void Disconnect()
         {
-            _session.Disconnect("Disconnect client");
-            _session.Join();
+            DisconnectAsync();
+            Join();
         }
 
         public void DisconnectAsync()
@@ -274,6 +274,11 @@ namespace TTQuoteHistoryClient
         public void Join()
         {
             _session.Join();
+
+            _session.OnConnect -= OnConnect;
+            _session.OnConnectError -= OnConnectError;
+            _session.OnDisconnect -= OnDisconnect;
+            _session.OnReceive -= OnReceive;
         }
 
         #endregion
