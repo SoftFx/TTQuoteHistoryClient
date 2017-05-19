@@ -1,0 +1,615 @@
+---
+title: <b> "Comparing perfomance FDK and TTQuoteHistoryClient " </b>
+author: 
+date: '`r Sys.time()`'
+output: html_document
+params:
+  symbol: EURUSD
+--- 
+  
+  
+```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F, results='hide'}
+DeleteLastElements <-function(table)
+{
+  if(nrow(table)>1)
+    {
+      while(TRUE)
+      {
+        buf <- tail(table$DateTime,n=2)
+        if(buf[1]==buf[2])
+        {
+          table <- head(table,n = -1)
+        }
+        else
+        {
+          break
+        }
+      }
+  }
+  return(table)
+}
+
+if(!require("data.table")){ 
+  install.packages("data.table", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(data.table) 
+} 
+if(!require("plyr")){ 
+  install.packages("plyr", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(plyr) 
+} 
+
+if(!require("compare")){ 
+  install.packages("compare", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(compare) 
+} 
+
+if(!require("DT")){ 
+ install.packages("DT", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+ library(DT) 
+} 
+
+if(!require("plotly")){ 
+ install.packages("plotly", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+ library(plotly) 
+ } 
+
+
+# ##########################vars#################################
+TickDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,07,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,07,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,12,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,05,12,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,29,3,00,00)), as.POSIXct(0,origin=ISOdatetime(2017,01,29,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,02,29,3,00,00)))
+
+#TickDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)))
+
+TickDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,07,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,07,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,12,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,05,12,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,29,3,00,00)), as.POSIXct(0,origin=ISOdatetime(2017,01,29,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,02,29,3,00,00)))
+
+
+#BarDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,05,3,00,00)))
+
+startTimeTicks<-as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00))
+endTimeTicks <- as.POSIXct(0,origin=ISOdatetime(2017,01,03,20,00,00))
+startTimeBars<- as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00))
+endTimeBars <- as.POSIXct(0,origin=ISOdatetime(2017,01,05,3,00,00))
+symbol <- "EURUSD"
+resultTableTime <-data.table()
+resultTableSpeed<-data.table()
+resultTickTable <-data.table()
+resultTickL2Table <- data.table()
+resultBarTable <- data.table()
+countTicks = 0
+countL2 = 0
+countBars_bid = 0
+time_ticks_fdk <- 0
+time_ticks_cache <- 0
+time_ticksL2_fdk <- 0
+time_ticksL2_cache <- 0
+time_bars_ask_fdk <- 0
+time_bars_ask_cache <- 0
+time_bars_bid_fdk <- 0
+time_bars_bid_cache <- 0
+step = 604800
+iterTime = startTimeTicks
+TTSAddress = "tp.dev.soft-fx.eu"
+TTSLogin = "5"
+TTSPassword = "123qwe!" 
+
+tz <- "UTC" 
+utits = "secs" 
+
+
+require(rFdk)
+require(rTTQuoteHistory)
+
+ttConnect(TTSAddress,TTSLogin,TTSPassword)
+tthConnect(TTSAddress)
+while(iterTime < endTimeTicks)
+{
+  if (iterTime + step > endTimeTicks)
+  {
+    step <- endTimeTicks - iterTime
+  }
+  
+  #########################  TiCKS     ###############################
+  
+  
+  st <- Sys.time()
+  ticks_fdk <-
+  ttFeed.TickBestHistory(symbol, iterTime, iterTime + step)
+  et <- Sys.time()
+  time_taken <- difftime(et, st, tz, utits)
+  time_ticks_fdk <- round(time_ticks_fdk + time_taken, 2)
+  
+  countTicks <- as.integer(countTicks + nrow(ticks_fdk))
+  count <- nrow(ticks_fdk)
+  if (count < 1000)
+  {
+    st <- Sys.time()
+    ticks_cache <- tthTickRequest(symbol, iterTime + step, count)
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticks_cache <- round(time_ticks_cache + time_taken, 2)
+  }
+  else
+  {
+    st <- Sys.time()
+    ticks_cache <- tthTickRequest(symbol, iterTime,-1000)
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticks_cache <- time_ticks_cache + time_taken
+    ticks_cache <- DeleteLastElements(ticks_cache)
+    cache_count <- nrow(ticks_cache)
+    while (cache_count < count - 1000)
+    {
+      st <- Sys.time()
+      ticks_cache <-
+      tthTickRequest(symbol, tail(ticks_cache$DateTime, n = 1),-1000)
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_ticks_cache <- time_ticks_cache + time_taken
+      ticks_cache <- DeleteLastElements(ticks_cache)
+      cache_count <- cache_count + nrow(ticks_cache)
+    }
+    st <- Sys.time()
+    ticks_cache <-tthTickRequest(symbol,tail(ticks_cache$DateTime, n = 1),-(count - cache_count))
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticks_cache <- round(time_ticks_cache + time_taken, 2)
+  }
+  #   #######################    L2     #################################
+  
+  
+  
+  st <- Sys.time()
+  ticksL2_fdk <-
+  ttFeed.TickLevel2History(symbol, iterTime, iterTime + step, 5)
+  et <- Sys.time()
+  time_taken <- difftime(et, st, tz, utits)
+  time_ticksL2_fdk <- round(time_ticksL2_fdk + time_taken, 2)
+  
+  countL2 <- as.integer(countL2 + floor(nrow(ticksL2_fdk) / 5))
+  count <- as.integer(floor(nrow(ticksL2_fdk) / 5))
+  if (count < 1000)
+  {
+    st <- Sys.time()
+    ticksL2_cache <- tthTickL2Request(symbol, iterTime,-count)
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticksL2_cache <-
+    round(time_ticksL2_cache + time_taken, 2)
+  }
+  else
+  {
+    st <- Sys.time()
+    ticksL2_cache <- tthTickL2Request(symbol, iterTime,-1000)
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticksL2_cache <- time_ticksL2_cache + time_taken
+    ticksL2_cache <- DeleteLastElements(ticksL2_cache)
+    cache_count <- as.integer(floor(nrow(ticksL2_cache) / 5))
+    while (cache_count < count - 1000)
+    {
+      st <- Sys.time()
+      ticksL2_cache <-
+      tthTickL2Request(symbol, tail(ticksL2_cache$DateTime, n = 1),-1000)
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_ticksL2_cache <- time_ticksL2_cache + time_taken
+      ticksL2_cache <- DeleteLastElements(ticksL2_cache)
+      cache_count <-
+      as.integer(floor(nrow(ticksL2_cache) / 5)) + cache_count
+    }
+    st <- Sys.time()
+    ticksL2_cache <-
+    tthTickL2Request(symbol,
+    tail(ticksL2_cache$DateTime, n = 1),
+    -(count - cache_count))
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticksL2_cache <-
+    round(time_ticksL2_cache + time_taken, 2)
+  }
+  iterTime <- iterTime + step
+}
+
+
+step = 604800
+iterTime = startTimeBars
+while(iterTime<endTimeBars)
+{
+  if(iterTime + step > endTimeBars)
+  {
+    step <- endTimeBars - iterTime
+  }
+#   ##########################    Bars_Bid    ##############################
+
+ 
+  
+  st <- Sys.time()
+  bars_bid_fdk <- ttFeed.BarHistory(symbol,"Bid",startTime = iterTime,endTime = (iterTime + step))
+  et <- Sys.time()
+  time_taken <- difftime(et, st, tz, utits)
+  time_bars_bid_fdk <- round(time_bars_bid_fdk + time_taken,2)
+
+  countBars_bid <- as.integer(countBars_bid + nrow(bars_bid_fdk))
+  count <- nrow(bars_bid_fdk)
+
+  if(count < 1000)
+  {
+    st <- Sys.time()
+    bars_bid_cache <- tthBarRequest(symbol,iterTime, -count,priceType = "Bid")
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_bars_bid_cache <- round(time_bars_bid_cache + time_taken,2)
+  }
+  else
+  {
+    st <- Sys.time()
+    bars_bid_cache <- tthBarRequest(symbol,iterTime, -1000,priceType = "Bid")
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_bars_bid_cache <-time_bars_bid_cache + time_taken
+    cache_count <- 1000
+    while(cache_count < count - 1000)
+    {
+      st <- Sys.time()
+      bars_bid_cache <- tthBarRequest(symbol,tail(bars_bid_cache$DateTime,n=1), -1000,priceType = "Bid")
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_bars_bid_cache <-time_bars_bid_cache + time_taken
+
+      cache_count <- cache_count + 1000
+    }
+    st <- Sys.time()
+    bars_bid_cache <- tthBarRequest(symbol,tail(bars_bid_cache$DateTime,n=1), -(count - cache_count),priceType = "Bid")
+    et <- Sys.time()
+    time_bars_bid_cache <- round(time_bars_bid_cache + et - st,2)
+  }
+  ########################################################
+  
+#  st <- Sys.time()
+#  bars_ask_fdk <- ttFeed.BarHistory(symbol,"Ask",startTime = startTime,endTime = endTime)
+#  et <- Sys.time()
+#  time_bars_ask_fdk <- round(time_bars_ask_fdk+et - st,2)
+#
+#  count <- nrow(bars_ask_fdk)
+  
+#  if(count < 1000)
+#  {
+#    st <- Sys.time()
+#    bars_ask_cache <- tthBarRequest(symbol,endTime, count,priceType = "Ask")
+#    et <- Sys.time()
+#    time_bars_ask_cache <-time_bars_ask_cache+ et - st
+#  }
+#  else
+#  {
+#    st <- Sys.time()
+#    bars_ask_cache <- tthBarRequest(symbol,endTime, 1000,priceType = "Ask")
+#    et <- Sys.time()
+#    time_bars_ask_cache <-time_bars_ask_cache+ et - st
+#    cache_count <- 1000
+#    while(cache_count < count - 1000)
+#    {
+#      st <- Sys.time()
+#      bars_ask_cache <- tthBarRequest(symbol,tail(bars_ask_cache$DateTime,n=1), -1000,priceType = "Ask")
+#      et <- Sys.time()
+#      time_bars_ask_cache <- time_bars_ask_cache+et - st
+#
+#      cache_count <- cache_count + 1000
+#    }
+#    st <- Sys.time()
+#    bars_ask_cache <- tthBarRequest(symbol,tail(bars_ask_cache$DateTime,n=1), -(count - cache_count),priceType = "Ask")
+#    et <- Sys.time()
+#    time_bars_ask_cache <- round(time_bars_ask_cache+et - st,2)
+#  }
+  iterTime <- iterTime + step
+  cat("\014")
+}
+
+
+
+
+ resultTableTime <- rbind(resultTableTime, data.table(names=c("rFDK", "rTTQuoteHistory"),  "TimeTicks, sec"=c(time_ticks_fdk,time_ticks_cache), "TimeL2, sec"=    c(time_ticksL2_fdk,time_ticksL2_cache), "TimeBars_bid, sec"= c(time_bars_bid_fdk,time_bars_bid_cache)))
+ 
+ speed_ticks_fdk = round(countTicks/as.numeric(time_ticks_fdk),0)
+ speed_ticks_cache = round(countTicks/as.numeric(time_ticks_cache),0)
+ 
+ speed_l2_fdk = round(countL2/as.numeric(time_ticksL2_fdk),0)
+ speed_l2_cache = round(countL2/as.numeric(time_ticksL2_cache),0)
+   
+ speed_bars_bid_fdk = round(countBars_bid/as.numeric(time_bars_bid_fdk),0)
+ speed_bars_bid_cache = round(countBars_bid/as.numeric(time_bars_bid_cache),0)
+ 
+ resultTableSpeed <- rbind(resultTableSpeed, data.table(names=c("rFDK", "rTTQuoteHistory"), "Ticks per sec"=c(speed_ticks_fdk,speed_ticks_cache), "L2 per sec"= c(speed_l2_fdk,speed_l2_cache),  "Bars per sec"= c(speed_bars_bid_fdk,speed_bars_bid_cache)))
+
+
+```
+
+<b> Plan: </b> <br>
+  1) FDK: Getting ticks from TT Server  <br>
+  2) Cash: FDK: Getting ticks from TT Server  <br>
+  3) FDK: Getting L2 from TT Server  <br>
+  4) Cash: FDK: Getting L2 from TT Server  <br>
+  5) FDK: Getting bars from TT Server  <br>
+  6) Cash: FDK: Getting bars from TT Server  <br>
+ 
+ <br>
+  
+  TT Server name:  <b>  `r  TTSAddress ` </b>   <br> 
+  Count ticks:  <b>  `r  countTicks ` </b>   <br> 
+  Ticks period: from `r startTimeTicks ` to `r endTimeTicks ` <br> 
+  <br>
+  Count bars:  <b>  `r  countBars_bid ` </b>   <br> 
+  Bars period: from `r startTimeBars ` to `r endTimeBars ` <br> 
+  
+ <h3>Time table </h3>
+```{r echo=F}
+datatable(resultTableTime)
+```
+
+ <h3> Speed table </h3>
+```{r echo=F}
+datatable(resultTableSpeed)
+```
+
+
+<br>
+
+```{r cache = F, echo = F, message = F, warning = F, tidy = F}
+
+for(i in 1:(length(TickDateArray)/2))
+{
+  countTicks = 0
+  countL2 = 0
+  time_ticks_fdk <- 0
+  time_ticks_cache <- 0
+  time_ticksL2_fdk <- 0
+  time_ticksL2_cache <- 0
+  step = 604800
+  iterTime = TickDateArray[2*i-1]
+  while(iterTime<TickDateArray[2*i])
+  {
+    if(iterTime + step > TickDateArray[2*i])
+    {
+      step <- TickDateArray[2*i] - iterTime
+    }
+  
+    #########################  TiCKS     ###############################
+  
+    
+    st <- Sys.time()
+    ticks_fdk <- ttFeed.TickBestHistory(symbol,iterTime,iterTime + step)
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_ticks_fdk <- round(time_ticks_fdk + time_taken,2)
+  
+    countTicks <- as.integer(countTicks + nrow(ticks_fdk))
+    count <- nrow(ticks_fdk)
+    if(count<1000)
+    {
+      st <- Sys.time()
+      ticks_cache <- tthTickRequest(symbol,iterTime + step, count)
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_ticks_cache <- round(time_ticks_cache + time_taken,2)
+    }
+    else
+    {
+      st <- Sys.time()
+      ticks_cache <- tthTickRequest(symbol,iterTime, -1000)
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_ticks_cache <- time_ticks_cache + time_taken
+      ticks_cache <- DeleteLastElements(ticks_cache)
+      cache_count <- nrow(ticks_cache)
+      while(cache_count < count - 1000)
+      {
+        st <- Sys.time()
+        ticks_cache <- tthTickRequest(symbol,tail(ticks_cache$DateTime,n=1), -1000)
+        et <- Sys.time()
+        time_taken <- difftime(et, st, tz, utits)
+        time_ticks_cache <- time_ticks_cache + time_taken
+        ticks_cache <- DeleteLastElements(ticks_cache)
+        cache_count <- cache_count + nrow(ticks_cache)
+      }
+      st <- Sys.time()
+      ticks_cache <- tthTickRequest(symbol,tail(ticks_cache$DateTime,n=1), -(count - cache_count))
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_ticks_cache <- round(time_ticks_cache + time_taken,2)
+    }
+  #   #######################    L2     #################################
+  
+  
+    
+    st <- Sys.time()
+     ticksL2_fdk <- ttFeed.TickLevel2History(symbol,iterTime,iterTime + step,5)
+     et <- Sys.time()
+     time_taken <- difftime(et, st, tz, utits)
+     time_ticksL2_fdk <- round(time_ticksL2_fdk + time_taken,2)
+     
+     countL2 <- as.integer(countL2 + floor(nrow(ticksL2_fdk)/5))
+     count <- as.integer(floor(nrow(ticksL2_fdk)/5))
+     if(count<1000)
+     {
+       st <- Sys.time()
+       ticksL2_cache <- tthTickL2Request(symbol,iterTime, -count)
+     et <- Sys.time()
+     time_taken <- difftime(et, st, tz, utits)
+       time_ticksL2_cache <- round(time_ticksL2_cache + time_taken,2)
+     }
+     else
+     {
+       st <- Sys.time()
+       ticksL2_cache <- tthTickL2Request(symbol,iterTime, -1000)
+       et <- Sys.time()
+       time_taken <- difftime(et, st, tz, utits)
+       time_ticksL2_cache <- time_ticksL2_cache + time_taken
+       ticksL2_cache <- DeleteLastElements(ticksL2_cache)
+       cache_count <- as.integer(floor(nrow(ticksL2_cache)/5))
+       while(cache_count < count - 1000)
+       {
+         st <- Sys.time()
+         ticksL2_cache <- tthTickL2Request(symbol,tail(ticksL2_cache$DateTime,n=1), -1000)
+         et <- Sys.time()
+         time_taken <- difftime(et, st, tz, utits)
+         time_ticksL2_cache <- time_ticksL2_cache + time_taken 
+         ticksL2_cache <- DeleteLastElements(ticksL2_cache)
+         cache_count <- as.integer(floor(nrow(ticksL2_cache)/5)) + cache_count
+       }
+       st <- Sys.time()
+       ticksL2_cache <- tthTickL2Request(symbol,tail(ticksL2_cache$DateTime,n=1), -(count - cache_count))
+       et <- Sys.time()
+       time_taken <- difftime(et, st, tz, utits)
+       time_ticksL2_cache <- round(time_ticksL2_cache + time_taken,2)
+     }
+     iterTime <- iterTime + step
+  }
+  resultTickTable <- rbind(resultTickTable,data.table(count = countTicks, timeTickFDK = time_ticks_fdk, timeTickTTH = time_ticks_cache))
+  resultTickL2Table <-rbind(resultTickL2Table,data.table(countL2 = countL2, timeL2FDK = time_ticksL2_fdk, timeL2TTH = time_ticksL2_cache))
+}
+
+for(i in 1:(length(BarDateArray)/2))
+{
+  countBars_bid = 0
+  countBars_ask = 0
+  time_bars_ask_fdk <- 0
+  time_bars_ask_cache <- 0
+  time_bars_bid_fdk <- 0
+  time_bars_bid_cache <- 0
+  step = 604800
+  iterTime = BarDateArray[2*i-1]
+  while(iterTime<BarDateArray[2*i])
+  {
+  if(iterTime + step > BarDateArray[2*i])
+  {
+    step <- BarDateArray[2*i] - iterTime
+  }
+#   ##########################    Bars_Bid    ##############################
+
+ 
+  
+  st <- Sys.time()
+  bars_bid_fdk <- ttFeed.BarHistory(symbol,"Bid",startTime = iterTime,endTime = (iterTime + step))
+  et <- Sys.time()
+  time_taken <- difftime(et, st, tz, utits)
+  time_bars_bid_fdk <- round(time_bars_bid_fdk + time_taken,2)
+
+  countBars_bid <- as.integer(countBars_bid + nrow(bars_bid_fdk))
+  count <- nrow(bars_bid_fdk)
+
+  if(count < 1000)
+  {
+    st <- Sys.time()
+    bars_bid_cache <- tthBarRequest(symbol,iterTime, -count,priceType = "Bid")
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_bars_bid_cache <- round(time_bars_bid_cache + time_taken,2)
+  }
+  else
+  {
+    st <- Sys.time()
+    bars_bid_cache <- tthBarRequest(symbol,iterTime, -1000,priceType = "Bid")
+    et <- Sys.time()
+    time_taken <- difftime(et, st, tz, utits)
+    time_bars_bid_cache <-time_bars_bid_cache + time_taken
+    cache_count <- 1000
+    while(cache_count < count - 1000)
+    {
+      st <- Sys.time()
+      bars_bid_cache <- tthBarRequest(symbol,tail(bars_bid_cache$DateTime,n=1), -1000,priceType = "Bid")
+      et <- Sys.time()
+      time_taken <- difftime(et, st, tz, utits)
+      time_bars_bid_cache <-time_bars_bid_cache + time_taken
+
+      cache_count <- cache_count + 1000
+    }
+    st <- Sys.time()
+    bars_bid_cache <- tthBarRequest(symbol,tail(bars_bid_cache$DateTime,n=1), -(count - cache_count),priceType = "Bid")
+    et <- Sys.time()
+    time_bars_bid_cache <- round(time_bars_bid_cache + et - st,2)
+  }
+  ########################################################
+  
+#  st <- Sys.time()
+#  bars_ask_fdk <- ttFeed.BarHistory(symbol,"Ask",startTime = startTime,endTime = endTime)
+#  et <- Sys.time()
+#  time_bars_ask_fdk <- round(time_bars_ask_fdk+et - st,2)
+#
+#  count <- nrow(bars_ask_fdk)
+  
+#  if(count < 1000)
+#  {
+#    st <- Sys.time()
+#    bars_ask_cache <- tthBarRequest(symbol,endTime, count,priceType = "Ask")
+#    et <- Sys.time()
+#    time_bars_ask_cache <-time_bars_ask_cache+ et - st
+#  }
+#  else
+#  {
+#    st <- Sys.time()
+#    bars_ask_cache <- tthBarRequest(symbol,endTime, 1000,priceType = "Ask")
+#    et <- Sys.time()
+#    time_bars_ask_cache <-time_bars_ask_cache+ et - st
+#    cache_count <- 1000
+#    while(cache_count < count - 1000)
+#    {
+#      st <- Sys.time()
+#      bars_ask_cache <- tthBarRequest(symbol,tail(bars_ask_cache$DateTime,n=1), -1000,priceType = "Ask")
+#      et <- Sys.time()
+#      time_bars_ask_cache <- time_bars_ask_cache+et - st
+#
+#      cache_count <- cache_count + 1000
+#    }
+#    st <- Sys.time()
+#    bars_ask_cache <- tthBarRequest(symbol,tail(bars_ask_cache$DateTime,n=1), -(count - cache_count),priceType = "Ask")
+#    et <- Sys.time()
+#    time_bars_ask_cache <- round(time_bars_ask_cache+et - st,2)
+#  }
+  iterTime <- iterTime + step
+  cat("\014")
+}
+  resultBarTable <- rbind(resultBarTable,data.table(count = countBars_bid, timeBarFDK = time_bars_bid_fdk,timeBarTTH = time_bars_bid_cache))
+}
+
+
+ttDisconnect()
+tthDisconnect()
+```
+<br>
+
+```{r cache = F, echo = F, message = F, warning = F, tidy = F}
+
+plot_ly(resultTickTable, x = resultTickTable$count) %>%
+    add_trace(y = resultTickTable$timeTickFDK, name = 'rFDK', mode = 'lines') %>%
+    add_trace(y = resultTickTable$timeTickTTH, name = 'TTQuoteHistoryClient', mode = 'lines') %>%
+    layout(title = "Chart downloading Ticks",
+         xaxis = list(title = "Count Ticks"),
+         yaxis = list (title = "Time downloading, sec"))
+
+```
+<br>
+
+```{r cache = F, echo = F, message = F, warning = F, tidy = F}
+#datatable(resultBarTable)
+plot_ly(resultTickL2Table, x = resultTickL2Table$countL2) %>%
+  
+  add_trace(y = resultTickL2Table$timeL2FDK, name = 'rFDK',mode = 'lines') %>%
+  add_trace(y = resultTickL2Table$timeL2TTH, name = 'TTQuoteHistoryClient',mode = 'lines') %>%
+  layout(title = "Chart downloading L2",
+         xaxis = list(title = "Count L2"),
+         yaxis = list (title = "Time downloading, sec"))
+
+```
+<br>
+
+```{r cache = F, echo = F, message = F, warning = F, tidy = F}
+
+plot_ly(resultBarTable, x = resultBarTable$count) %>%
+  
+  add_trace(y = resultBarTable$timeBarFDK, name = 'rFDK',mode = 'lines') %>%
+  add_trace(y = resultBarTable$timeBarTTH, name = 'TTQuoteHistoryClient',mode = 'lines') %>%
+  layout(title = "Chart downloading Bars",
+         xaxis = list(title = "Count Bars"),
+         yaxis = list (title = "Time downloading, sec"))
+
+
+```
+
