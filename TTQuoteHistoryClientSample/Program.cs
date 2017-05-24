@@ -78,10 +78,10 @@ namespace TTQuoteHistoryClientSample
             try
             {
                 // Create an instance of Quote History client
-                using (var client = new QuoteHistoryClient(address, port))
+                using (var client = new QuoteHistoryClient(port))
                 {
                     // Connect to the server
-                    client.Connect();
+                    client.Connect(address);
 
                     // Login
                     client.Login("5", "123qwe!", "", "");

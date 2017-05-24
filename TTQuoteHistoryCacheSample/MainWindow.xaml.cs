@@ -48,11 +48,11 @@ namespace TTQuoteHistoryCacheSample
         {
             DisposeQuoteHistory();
 
-            _historyClient = new QuoteHistoryClient(textAddress.Text);
+            _historyClient = new QuoteHistoryClient();
             _historyClient.Connected += HistoryClientOnConnected;
             _historyClient.ConnectError += HistoryClientOnConnectError;
             _historyClient.Disconnected += HistoryClientOnDisconnected;
-            _historyClient.Connect();
+            _historyClient.Connect(textAddress.Text);
 
             _historyCacheManager = new HistoryCacheManager(_historyClient);
             _historyCacheManager.Initialize();
@@ -109,6 +109,7 @@ namespace TTQuoteHistoryCacheSample
                 _historyClient.Connected -= HistoryClientOnConnected;
                 _historyClient.ConnectError -= HistoryClientOnConnectError;
                 _historyClient.Disconnected -= HistoryClientOnDisconnected;
+
                 _historyClient.Dispose();
                 _historyClient = null;
             }

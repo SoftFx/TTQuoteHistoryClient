@@ -12,7 +12,6 @@ namespace TTQuoteHistoryClient
     {
         public static TimeSpan Timeout = TimeSpan.FromMilliseconds(10000);
 
-        private readonly string _address;        
         private readonly ClientSession _session;
         private readonly ClientSessionListener _sessionListener;
 
@@ -81,17 +80,16 @@ namespace TTQuoteHistoryClient
 
         #region Constructors
 
-        public QuoteHistoryClient(string address) : this(address, 5020)
+        public QuoteHistoryClient() : this(5020)
         {
         }
 
-        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port) { ConnectMaxCount = 1, SendBufferSize = 1048576 })
+        public QuoteHistoryClient(int port) : this(port, new ClientSessionOptions(port) { ConnectMaxCount = 1, SendBufferSize = 1048576 })
         {
         }
 
-        public QuoteHistoryClient(string address, int port, ClientSessionOptions options)
+        public QuoteHistoryClient(int port, ClientSessionOptions options)
         {            
-            _address = address;            
             options.ConnectPort = port;
             options.Log.Events = true;
             options.Log.States = true;
@@ -290,9 +288,9 @@ namespace TTQuoteHistoryClient
 
         public bool IsConnected { get; private set; }
 
-        public void Connect()
+        public void Connect(string address)
         {
-            _session.Connect(_address);
+            _session.Connect(address);
 
             if (!_session.WaitConnect(15000))
             {
@@ -301,9 +299,9 @@ namespace TTQuoteHistoryClient
             }
         }
 
-        public void ConnectAsync()
+        public void ConnectAsync(string address)
         {
-            _session.Connect(_address);
+            _session.Connect(address);
         }
 
         public void Disconnect()
