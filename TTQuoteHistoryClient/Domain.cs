@@ -5,6 +5,27 @@ using System.Text;
 
 namespace TTQuoteHistoryClient
 {
+    public enum LogoutReason
+    {
+        ClientLogout = 0,
+        InvalidCreds = 1,
+        BlockedLogin = 2,
+        SlowConnection = 3,
+        InvalidSessionId = 4,
+        InternalServerError = 5,
+        TimeoutLogin = 6,
+        DeletedLogin = 7,
+        ServerLogout = 8
+    }
+
+    public class LogoutInfo
+    {
+        public LogoutReason Reason;
+        public string Message;
+
+        public override string ToString() { return string.Format("Reason={0}, Message={1}", Reason, Message);  }
+    }
+
     public enum PriceType
     {
         Bid = 0,

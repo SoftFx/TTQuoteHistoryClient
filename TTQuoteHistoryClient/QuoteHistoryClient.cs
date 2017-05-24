@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using SoftFX.Net.Core;
-using SoftFX.Net.QuoteHistoryCacheProtocol;
+using SoftFX.Net.QuoteHistory;
 
 namespace TTQuoteHistoryClient
 {
@@ -13,53 +12,69 @@ namespace TTQuoteHistoryClient
     {
         public static TimeSpan Timeout = TimeSpan.FromMilliseconds(10000);
 
-        private int _timeout = 15000;
-        private readonly string _address;
+        private readonly string _address;        
         private readonly ClientSession _session;
+        private readonly ClientSessionListener _sessionListener;
 
-        #region Async call tokens
+        #region Async contexts
 
-        interface IAsyncCallToken
+        private interface IAsyncContext
         {
-            string RequestId { get; }
             void SetException(Exception ex);
         }
 
-        class AsyncCallToken<T> : IAsyncCallToken
+        private class LoginAsyncContext : LoginRequestClientContext, IAsyncContext
         {
-            public string RequestId { get; set; }
-            public readonly TaskCompletionSource<T> Tcs = new TaskCompletionSource<T>();
+            public LoginAsyncContext() : base(false) { }
 
-            public void SetException(Exception ex)
-            {
-                Tcs.SetException(ex);
-            }
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<object> Tcs = new TaskCompletionSource<object>();
         }
 
-        private readonly object _locker = new object();
-        private readonly Dictionary<string, IAsyncCallToken> _callTokens = new Dictionary<string, IAsyncCallToken>();
-
-        IAsyncCallToken TryGetAsyncCallToken(string requestId)
+        private class LogoutAsyncContext : LogoutRequestClientContext, IAsyncContext
         {
-            if (!string.IsNullOrEmpty(requestId))
-            {
-                lock (_locker)
-                {
-                    IAsyncCallToken token;
-                    if (_callTokens.TryGetValue(requestId, out token))
-                        return token;
-                }
-            }
+            public LogoutAsyncContext() : base(false) { }
 
-            return null;
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<LogoutInfo> Tcs = new TaskCompletionSource<LogoutInfo>();
         }
 
-        void RemoveAsyncCallToken(string requestId)
+        private class GetSupportedSymbolsAsyncContext : SymbolsRequestClientContext, IAsyncContext
         {
-            lock (_locker)
-            {
-                _callTokens.Remove(requestId);
-            }
+            public GetSupportedSymbolsAsyncContext() : base(false) { }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<List<string>> Tcs = new TaskCompletionSource<List<string>>();
+        }
+
+        private class GetSupportedPeriodicitiesAsyncContext : PeriodicitiesRequestClientContext, IAsyncContext
+        {
+            public GetSupportedPeriodicitiesAsyncContext() : base(false) { }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<List<string>> Tcs = new TaskCompletionSource<List<string>>();
+        }
+
+        private class QueryQuoteHistoryBarsAsyncContext : BarsRequestClientContext, IAsyncContext
+        {
+            public QueryQuoteHistoryBarsAsyncContext() : base(false) { }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<List<Bar>> Tcs = new TaskCompletionSource<List<Bar>>();
+        }
+
+        private class QueryQuoteHistoryTicksAsyncContext : TicksRequestClientContext, IAsyncContext
+        {
+            public QueryQuoteHistoryTicksAsyncContext() : base(false) { }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<List<Tick>> Tcs = new TaskCompletionSource<List<Tick>>();
         }
 
         #endregion
@@ -70,165 +85,195 @@ namespace TTQuoteHistoryClient
         {
         }
 
-        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port) { ConnectMaxCount = 1, ReceiveQueueSize = 1048576, SendBufferSize = 1048576 })
+        public QuoteHistoryClient(string address, int port) : this(address, port, new ClientSessionOptions(port) { ConnectMaxCount = 1, SendBufferSize = 1048576 })
         {
         }
 
         public QuoteHistoryClient(string address, int port, ClientSessionOptions options)
-        {
-            _address = address;
+        {            
+            _address = address;            
             options.ConnectPort = port;
-            _session = new ClientSession("QuoteHistoryClient", Info.QuoteHistoryCacheProtocol, options);
-            _session.OnConnect += OnConnect;
-            _session.OnConnectError += OnConnectError;
-            _session.OnDisconnect += OnDisconnect;
-            _session.OnReceive += OnReceive;
+            options.Log.Events = true;
+            options.Log.States = true;
+            options.Log.Messages = true;
+            _session = new ClientSession("QuoteHistoryClient", options);
+            _sessionListener = new ClientSessionListener(this);
+            _session.Listener = _sessionListener;
         }
 
-        private void OnConnect(ClientSession clientSession)
-        {
-            IsConnected = true;
-            Connected?.Invoke(this);
-        }
+        #endregion
 
-        private void OnConnectError(ClientSession clientSession)
-        {
-            IsConnected = false;
-            ConnectError?.Invoke(this);
-        }
+        #region Session listener
 
-        private void OnDisconnect(ClientSession clientSession, string text)
+        private class ClientSessionListener : SoftFX.Net.QuoteHistory.ClientSessionListener
         {
-            lock (_locker)
+            public ClientSessionListener(QuoteHistoryClient client)
             {
-                // Reset all async call tokens
-                foreach (var token in _callTokens)
-                    token.Value.SetException(new Exception("Client is disconnected"));
-                _callTokens.Clear();
+                _client = client;
             }
 
-            IsConnected = false;
-            Disconnected?.Invoke(this);
-        }
-
-        private void OnReceive(ClientSession clientSession, Message message)
-        {
-            if (Is.QuoteHistorySymbolsReport(message))
+            public override void OnConnect(ClientSession clientSession)
             {
-                var report = Cast.QuoteHistorySymbolsReport(message);
-                var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<string>>;
-                if (token != null)
+                _client.IsConnected = true;
+                _client.Connected?.Invoke(_client);
+            }
+
+            public override void OnConnectError(ClientSession clientSession)
+            {
+                _client.IsConnected = false;
+                _client.ConnectError?.Invoke(_client);
+            }
+
+            public override void OnDisconnect(ClientSession clientSession, ClientContext[] contexts, string text)
+            {
+                Exception exception = new Exception("Client is disconnected");
+                foreach (ClientContext context in contexts)
+                    ((IAsyncContext) context).SetException(exception);
+
+                _client.IsConnected = false;
+                _client.Disconnected?.Invoke(_client);
+            }
+
+            public override void OnLoginReport(ClientSession session, LoginRequestClientContext LoginRequestClientContext, LoginReport message)
+            {
+                var context = (LoginAsyncContext) LoginRequestClientContext;
+                context.Tcs.SetResult(null);
+            }
+
+            public override void OnLoginReject(ClientSession session, LoginRequestClientContext LoginRequestClientContext, LoginReject message)
+            {
+                var context = (LoginAsyncContext)LoginRequestClientContext;
+                var exception = new Exception(message.Message);
+                context.Tcs.SetException(exception);
+            }
+
+            public override void OnLogoutReport(ClientSession session, LogoutRequestClientContext LogoutRequestClientContext, LogoutReport message)
+            {
+                var context = (LogoutAsyncContext)LogoutRequestClientContext;
+                var result = new LogoutInfo();
+                result.Reason = (LogoutReason) message.Reason; // values match
+                result.Message = message.Message;
+                context.Tcs.SetResult(result);
+            }
+
+            public override void OnSymbolsReport(ClientSession session, SymbolsRequestClientContext SymbolsRequestClientContext, SymbolsReport report)
+            {
+                var context = (GetSupportedSymbolsAsyncContext) SymbolsRequestClientContext;
+                var result = new List<string>();
+                for (int i = 0; i < report.Symbols.Length; i++)
                 {
-                    var result = new List<string>();
-                    for (int i = 0; i < report.Symbols.Length; i++)
-                    {
-                        var symbol = report.Symbols[i];
-                        result.Add(symbol);
-                    }
-                    token.Tcs.SetResult(result);
-                    RemoveAsyncCallToken(token.RequestId);
+                    var symbol = report.Symbols[i];
+                    result.Add(symbol);
                 }
+                context.Tcs.SetResult(result);
             }
-            else if (Is.QuoteHistoryPeriodicitiesReport(message))
+
+            public override void OnSymbolsReject(ClientSession session, SymbolsRequestClientContext SymbolsRequestClientContext, QueryReject reject)
             {
-                var report = Cast.QuoteHistoryPeriodicitiesReport(message);
-                var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<string>>;
-                if (token != null)
+                var context = (GetSupportedSymbolsAsyncContext) SymbolsRequestClientContext;
+                var exception = new Exception(reject.Message);
+                context.Tcs.SetException(exception);
+            }
+
+            public override void OnPeriodicitiesReport(ClientSession session, PeriodicitiesRequestClientContext PeriodicitiesRequestClientContext, PeriodicitiesReport report)
+            {
+                var context = (GetSupportedPeriodicitiesAsyncContext) PeriodicitiesRequestClientContext;
+                var result = new List<string>();
+                for (int i = 0; i < report.Periodicities.Length; i++)
                 {
-                    var result = new List<string>();
-                    for (int i = 0; i < report.Periodicities.Length; i++)
-                    {
-                        var periodicity = report.Periodicities[i];
-                        result.Add(periodicity);
-                    }
-                    token.Tcs.SetResult(result);
-                    RemoveAsyncCallToken(token.RequestId);
+                    var periodicity = report.Periodicities[i];
+                    result.Add(periodicity);
                 }
+                context.Tcs.SetResult(result);
             }
-            else if (Is.QueryQuoteHistoryBarsReport(message))
+
+            public override void OnPeriodicitiesReject(ClientSession session, PeriodicitiesRequestClientContext PeriodicitiesRequestClientContext, QueryReject reject)
             {
-                var report = Cast.QueryQuoteHistoryBarsReport(message);
-                var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<Bar>>;
-                if (token != null)
+                var context = (GetSupportedPeriodicitiesAsyncContext) PeriodicitiesRequestClientContext;
+                var exception = new Exception(reject.Message);
+                context.Tcs.SetException(exception);
+            }
+
+            public override void OnBarsReport(ClientSession session, BarsRequestClientContext BarsRequestClientContext, QueryBarsReport report)
+            {
+                var context = (QueryQuoteHistoryBarsAsyncContext) BarsRequestClientContext;
+                var result = new List<Bar>();
+                for (int i = 0; i < report.Bars.Length; i++)
                 {
-                    var result = new List<Bar>();
-                    for (int i = 0; i < report.Bars.Length; i++)
+                    var sourceBar = report.Bars[i];
+                    var bar = new Bar
                     {
-                        var sourceBar = report.Bars[i];
-                        var bar = new Bar
+                        Time = sourceBar.Time,
+                        Open = (decimal)sourceBar.Open,
+                        High = (decimal)sourceBar.High,
+                        Low = (decimal)sourceBar.Low,
+                        Close = (decimal)sourceBar.Close,
+                        Volume = (decimal)sourceBar.Volume
+                    };
+                    result.Add(bar);
+                }
+                context.Tcs.SetResult(result);
+            }
+
+            public override void OnBarsReject(ClientSession session, BarsRequestClientContext BarsRequestClientContext, QueryReject reject)
+            {
+                var context = (QueryQuoteHistoryBarsAsyncContext) BarsRequestClientContext;
+                var exception = new Exception(reject.Message);
+                context.Tcs.SetException(exception);
+            }
+
+            public override void OnTicksReport(ClientSession session, TicksRequestClientContext TicksRequestClientContext, QueryTicksReport report)
+            {
+                var context = (QueryQuoteHistoryTicksAsyncContext) TicksRequestClientContext;
+                var result = new List<Tick>();
+                for (int i = 0; i < report.Ticks.Length; i++)
+                {
+                    var sourceTick = report.Ticks[i];
+                    var tick = new Tick()
+                    {
+                        Id = new TickId
                         {
-                            Time = sourceBar.Time,
-                            Open = (decimal)sourceBar.Open,
-                            High = (decimal)sourceBar.High,
-                            Low = (decimal)sourceBar.Low,
-                            Close = (decimal)sourceBar.Close,
-                            Volume = (decimal)sourceBar.Volume
+                            Time = sourceTick.Id.Time,
+                            Index = sourceTick.Id.Index
+                        },
+                        Level2 = new Level2Collection()
+                    };
+
+                    for (int j = 0; j < sourceTick.Level2.Bids.Length; j++)
+                    {
+                        var sourceBid = sourceTick.Level2.Bids[j];
+                        var bid = new Level2Value
+                        {
+                            Price = (decimal)sourceBid.Price,
+                            Volume = (decimal)sourceBid.Volume
                         };
-                        result.Add(bar);
+                        tick.Level2.Bids.Add(bid);
                     }
-                    token.Tcs.SetResult(result);
-                    RemoveAsyncCallToken(token.RequestId);
-                }
-            }
-            else if (Is.QueryQuoteHistoryTicksReport(message))
-            {
-                var report = Cast.QueryQuoteHistoryTicksReport(message);
-                var token = TryGetAsyncCallToken(report.RequestId) as AsyncCallToken<List<Tick>>;
-                if (token != null)
-                {
-                    var result = new List<Tick>();
-                    for (int i = 0; i < report.Ticks.Length; i++)
+
+                    for (int j = 0; j < sourceTick.Level2.Asks.Length; j++)
                     {
-                        var sourceTick = report.Ticks[i];
-                        var tick = new Tick()
+                        var sourceAsk = sourceTick.Level2.Asks[j];
+                        var ask = new Level2Value
                         {
-                            Id = new TickId
-                            {
-                                Time = sourceTick.Id.Time,
-                                Index = sourceTick.Id.Index
-                            },
-                            Level2 = new Level2Collection()
+                            Price = (decimal)sourceAsk.Price,
+                            Volume = (decimal)sourceAsk.Volume
                         };
-
-                        for (int j = 0; j < sourceTick.Level2.Bids.Length; j++)
-                        {
-                            var sourceBid = sourceTick.Level2.Bids[j];
-                            var bid = new Level2Value
-                            {
-                                Price = (decimal)sourceBid.Price,
-                                Volume = (decimal)sourceBid.Volume
-                            };
-                            tick.Level2.Bids.Add(bid);
-                        }
-
-                        for (int j = 0; j < sourceTick.Level2.Asks.Length; j++)
-                        {
-                            var sourceAsk = sourceTick.Level2.Asks[j];
-                            var ask = new Level2Value
-                            {
-                                Price = (decimal)sourceAsk.Price,
-                                Volume = (decimal)sourceAsk.Volume
-                            };
-                            tick.Level2.Asks.Add(ask);
-                        }
-
-                        result.Add(tick);
+                        tick.Level2.Asks.Add(ask);
                     }
-                    token.Tcs.SetResult(result);
-                    RemoveAsyncCallToken(token.RequestId);
+
+                    result.Add(tick);
                 }
+                context.Tcs.SetResult(result);
             }
-            else if (Is.QueryQuoteHistoryReject(message))
+
+            public override void OnTicksReject(ClientSession session, TicksRequestClientContext TicksRequestClientContext, QueryReject reject)
             {
-                var reject = Cast.QueryQuoteHistoryReject(message);
-                var token = TryGetAsyncCallToken(reject.RequestId) as AsyncCallToken<string>;
-                if (token != null)
-                {
-                    var result = reject.RejectMessage;
-                    token.Tcs.SetResult(result);
-                    RemoveAsyncCallToken(token.RequestId);
-                }
+                var context = (QueryQuoteHistoryTicksAsyncContext) TicksRequestClientContext;
+                var exception = new Exception(reject.Message);
+                context.Tcs.SetException(exception);
             }
+
+            QuoteHistoryClient _client;
         }
 
         #endregion
@@ -249,7 +294,7 @@ namespace TTQuoteHistoryClient
         {
             _session.Connect(_address);
 
-            if (!_session.WaitConnect(_timeout))
+            if (!_session.WaitConnect(15000))
             {
                 Disconnect();
                 throw new TimeoutException("Connect timeout");
@@ -276,141 +321,170 @@ namespace TTQuoteHistoryClient
         {
             _session.Join();
 
-            _session.OnConnect -= OnConnect;
-            _session.OnConnectError -= OnConnectError;
-            _session.OnDisconnect -= OnDisconnect;
-            _session.OnReceive -= OnReceive;
+            _session.Listener = null;
+        }
+
+        #endregion
+
+        #region Login / logout
+
+        public void Login(string username, string password, string deviceId, string appSessionId)
+        {
+            ConvertToSync(LoginAsync(username, password, deviceId, appSessionId), Timeout);
+        }
+
+        public Task LoginAsync(string username, string password, string deviceId, string appSessionId)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            // Create a new async context
+            var context = new LoginAsyncContext();
+
+            // Create a request
+            var request = new LoginRequest(0)
+            {
+                Username = username,
+                Password = password,
+                DeviceID = deviceId,
+                AppSessionID = appSessionId
+            };
+
+            // Send request to the server
+            _session.SendLoginRequest(context, request);
+
+            // Return result task
+            return context.Tcs.Task;
+        }
+
+        public LogoutInfo Logout(string message)
+        {
+            return ConvertToSync(LogoutAsync(message), Timeout);
+        }
+
+        public Task<LogoutInfo> LogoutAsync(string message)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            // Create a new async context
+            var context = new LogoutAsyncContext();
+
+            // Create a request
+            var request = new LogoutRequest(0)
+            {
+                Message = message
+            };
+
+            // Send request to the server
+            _session.SendLogoutRequest(context, request);
+
+            // Return result task
+            return context.Tcs.Task;
         }
 
         #endregion
 
         #region Quote History cache
 
-        public List<string> GetSupportedSymbols() { return ConvertToSync(GetSupportedSymbolsAsync(), Timeout); }
+        public List<string> GetSupportedSymbols()
+        {
+            return ConvertToSync(GetSupportedSymbolsAsync(), Timeout);
+        }
 
         public Task<List<string>> GetSupportedSymbolsAsync()
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
 
+            // Create a new async context
+            var context = new GetSupportedSymbolsAsyncContext();
+
             // Create a new QH cache request
-            var request = new QuoteHistorySymbolsRequest(0)
+            var request = new SymbolsRequest(0)
             {
                 RequestId = Guid.NewGuid().ToString()
             };
 
-            // Create a new async call token
-            var token = new AsyncCallToken<List<string>> { RequestId = request.RequestId };
-            lock (_locker)
-            {
-                _callTokens[token.RequestId] = token;
-            }
-
-            try
-            {
-                // Send request to the server
-                _session.Send(Cast.Message(request));
-            }
-            catch (Exception)
-            {
-                lock (_locker)
-                {
-                    _callTokens.Remove(token.RequestId);
-                }
-            }
-
+            // Send request to the server
+            _session.SendSymbolsRequest(context, request);
+            
             // Return result task
-            return token.Tcs.Task;
+            return context.Tcs.Task;
         }
 
-        public List<string> GetSupportedPeriodicities() { return ConvertToSync(GetSupportedPeriodicitiesAsync(), Timeout); }
+        public List<string> GetSupportedPeriodicities()
+        {
+            return ConvertToSync(GetSupportedPeriodicitiesAsync(), Timeout);
+        }
 
         public Task<List<string>> GetSupportedPeriodicitiesAsync()
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
 
+            // Create a new async context
+            var context = new GetSupportedPeriodicitiesAsyncContext();
+
             // Create a new QH cache request
-            var request = new QuoteHistoryPeriodicitiesRequest(0)
+            var request = new PeriodicitiesRequest(0)
             {
                 RequestId = Guid.NewGuid().ToString()
             };
 
-            // Create a new async call token
-            var token = new AsyncCallToken<List<string>> { RequestId = request.RequestId };
-            lock (_locker)
-            {
-                _callTokens[token.RequestId] = token;
-            }
-
-            try
-            {
-                // Send request to the server
-                _session.Send(Cast.Message(request));
-            }
-            catch (Exception)
-            {
-                lock (_locker)
-                {
-                    _callTokens.Remove(token.RequestId);
-                }
-            }
+            // Send request to the server
+            _session.SendPeriodicitiesRequest(context, request);
 
             // Return result task
-            return token.Tcs.Task;
+            return context.Tcs.Task;
         }
 
-        public List<Bar> QueryQuoteHistoryBars(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType) { return ConvertToSync(QueryQuoteHistoryBarsAsync(timestamp, count, symbol, pereodicity, priceType), Timeout); }
+        public List<Bar> QueryQuoteHistoryBars(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType)
+        {
+            return ConvertToSync(QueryQuoteHistoryBarsAsync(timestamp, count, symbol, pereodicity, priceType), Timeout);
+        }
 
         public Task<List<Bar>> QueryQuoteHistoryBarsAsync(DateTime timestamp, int count, string symbol, string pereodicity, PriceType priceType)
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
 
+            // Create a new async context
+            var context = new QueryQuoteHistoryBarsAsyncContext();
+
             // Create a new QH cache request
-            var request = new QueryQuoteHistoryBarsRequest(0)
+            var request = new QueryBarsRequest(0)
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
                 Count = Math.Min(count, 5000),
                 Symbol = symbol,
                 Periodicity = pereodicity,
-                PriceType = (SoftFX.Net.QuoteHistoryCacheProtocol.PriceType) priceType
+                PriceType = (SoftFX.Net.QuoteHistory.PriceType) priceType
             };
 
-            // Create a new async call token
-            var token = new AsyncCallToken<List<Bar>> { RequestId = request.RequestId };
-            lock (_locker)
-            {
-                _callTokens[token.RequestId] = token;
-            }
-
-            try
-            {
-                // Send request to the server
-                _session.Send(Cast.Message(request));
-            }
-            catch (Exception)
-            {
-                lock (_locker)
-                {
-                    _callTokens.Remove(token.RequestId);
-                }
-            }
+            // Send request to the server
+            _session.SendBarsRequest(context, request);
 
             // Return result task
-            return token.Tcs.Task;
+            return context.Tcs.Task;
         }
 
-        public List<Tick> QueryQuoteHistoryTicks(DateTime timestamp, int count, string symbol, bool level2) { return ConvertToSync(QueryQuoteHistoryTicksAsync(timestamp, count, symbol, level2), Timeout); }
+        public List<Tick> QueryQuoteHistoryTicks(DateTime timestamp, int count, string symbol, bool level2)
+        {
+            return ConvertToSync(QueryQuoteHistoryTicksAsync(timestamp, count, symbol, level2), Timeout);
+        }
 
         public Task<List<Tick>> QueryQuoteHistoryTicksAsync(DateTime timestamp, int count, string symbol, bool level2)
         {
             if (!IsConnected)
                 throw new Exception("Client is not connected!");
 
+            // Create a new async context
+            var context = new QueryQuoteHistoryTicksAsyncContext();
+
             // Create a new QH cache request
-            var request = new QueryQuoteHistoryTicksRequest(0)
+            var request = new QueryTicksRequest(0)
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
@@ -419,28 +493,11 @@ namespace TTQuoteHistoryClient
                 Level2 = level2
             };
 
-            // Create a new async call token
-            var token = new AsyncCallToken<List<Tick>> { RequestId = request.RequestId };
-            lock (_locker)
-            {
-                _callTokens[token.RequestId] = token;
-            }
-
-            try
-            {
-                // Send request to the server
-                _session.Send(Cast.Message(request));
-            }
-            catch (Exception)
-            {
-                lock (_locker)
-                {
-                    _callTokens.Remove(token.RequestId);
-                }
-            }
+            // Send request to the server
+            _session.SendTicksRequest(context, request);
 
             // Return result task
-            return token.Tcs.Task;
+            return context.Tcs.Task;
         }
 
         #endregion
@@ -481,7 +538,7 @@ namespace TTQuoteHistoryClient
 
         #region IDisposable
 
-        bool _disposed;
+        private bool _disposed;
 
         ~QuoteHistoryClient()
         {

@@ -83,6 +83,9 @@ namespace TTQuoteHistoryClientSample
                     // Connect to the server
                     client.Connect();
 
+                    // Login
+                    client.Login("5", "123qwe!", "", "");
+
                     // Request the server
                     if (level2)
                     {
@@ -91,14 +94,16 @@ namespace TTQuoteHistoryClientSample
                         foreach (var tick in result)
                             Console.WriteLine(tick);
                     }
-                    else if (ticks)
+
+                    if (ticks)
                     {
                         // Request for the ticks history
                         var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, false);
                         foreach (var tick in result)
                             Console.WriteLine(tick);
                     }
-                    else if (bars)
+
+                    if (bars)
                     {
                         // Request for the bars history
                         var result = client.QueryQuoteHistoryBars(timestamp, count, symbol, periodicity, priceType);
@@ -106,8 +111,8 @@ namespace TTQuoteHistoryClientSample
                             Console.WriteLine(bar);
                     }
 
-                    // Disconnect to the server
-                    client.Disconnect();
+                    // Logout
+                    client.Logout("");
                 }
             }
             catch (Exception ex)

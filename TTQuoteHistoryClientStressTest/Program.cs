@@ -86,6 +86,9 @@ namespace TTQuoteHistoryClientStressTest
                     // Connect to the server
                     client.Connect();
 
+                    // Login
+                    client.Login("5", "123qwe!", "", "");
+
                     ThreadParams threadParams = new ThreadParams();
                     threadParams.client = client;
                     threadParams.timestamp = timestamp;
@@ -118,8 +121,8 @@ namespace TTQuoteHistoryClientStressTest
                     for (int i = 0; i < threads.Length; ++i)
                         threads[i].Join();
 
-                    // Disconnect to the server
-                    client.Disconnect();
+                    // Logout
+                    client.Logout("");
                 }
             }
             catch (Exception ex)
@@ -147,23 +150,30 @@ namespace TTQuoteHistoryClientStressTest
 
             while (!stop_)
             {
-                // Request the server
-                if (threadParams.level2)
+                try
                 {
-                    // Request for the level2 history
-                    var result = threadParams.client.QueryQuoteHistoryTicks(threadParams.timestamp, threadParams.count, threadParams.symbol, true);
-                }
+                    // Request the server
+                    if (threadParams.level2)
+                    {
+                        // Request for the level2 history
+                        var result = threadParams.client.QueryQuoteHistoryTicks(threadParams.timestamp, threadParams.count, threadParams.symbol, true);
+                    }
 
-                if (threadParams.ticks)
-                {
-                    // Request for the ticks history
-                    var result = threadParams.client.QueryQuoteHistoryTicks(threadParams.timestamp, threadParams.count, threadParams.symbol, false);
-                }
+                    if (threadParams.ticks)
+                    {
+                        // Request for the ticks history
+                        var result = threadParams.client.QueryQuoteHistoryTicks(threadParams.timestamp, threadParams.count, threadParams.symbol, false);
+                    }
 
-                if (threadParams.bars)
+                    if (threadParams.bars)
+                    {
+                        // Request for the bars history
+                        var result = threadParams.client.QueryQuoteHistoryBars(threadParams.timestamp, threadParams.count, threadParams.symbol, threadParams.periodicity, threadParams.priceType);
+                    }
+                }
+                catch (Exception exception)
                 {
-                    // Request for the bars history
-                    var result = threadParams.client.QueryQuoteHistoryBars(threadParams.timestamp, threadParams.count, threadParams.symbol, threadParams.periodicity, threadParams.priceType);
+                    Console.WriteLine(exception.Message);
                 }
             }
         }
