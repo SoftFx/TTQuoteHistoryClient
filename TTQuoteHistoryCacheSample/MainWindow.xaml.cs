@@ -48,7 +48,7 @@ namespace TTQuoteHistoryCacheSample
         {
             DisposeQuoteHistory();
 
-            _historyClient = new QuoteHistoryClient();
+            _historyClient = new QuoteHistoryClient("QuoteHistoryCache");
             _historyClient.Connected += HistoryClientOnConnected;
             _historyClient.ConnectError += HistoryClientOnConnectError;
             _historyClient.Disconnected += HistoryClientOnDisconnected;

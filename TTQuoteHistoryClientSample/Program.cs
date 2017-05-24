@@ -11,6 +11,8 @@ namespace TTQuoteHistoryClientSample
             bool help = false;
 
             string address = "localhost";
+            string login = "5";
+            string password = "123qwe!";
             int port = 5020;
 
             DateTime timestamp = DateTime.UtcNow;
@@ -25,6 +27,8 @@ namespace TTQuoteHistoryClientSample
             var options = new OptionSet()
             {
                 { "a|address=", v => address = v },
+                { "l|login=", v => login = v },
+                { "w|password=", v => password = v },
                 { "p|port=", v => port = int.Parse(v) },
                 { "h|?|help",   v => help = v != null },
                 { "t|timestamp=", v => timestamp = DateTime.Parse(v) },
@@ -78,13 +82,13 @@ namespace TTQuoteHistoryClientSample
             try
             {
                 // Create an instance of Quote History client
-                using (var client = new QuoteHistoryClient(port))
+                using (var client = new QuoteHistoryClient("QuoteHistoryCache", port))
                 {
                     // Connect to the server
                     client.Connect(address);
 
                     // Login
-                    client.Login("5", "123qwe!", "", "");
+                    client.Login(login, password, "", "");
 
                     // Request the server
                     if (level2)

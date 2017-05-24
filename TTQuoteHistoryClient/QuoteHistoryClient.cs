@@ -1,10 +1,13 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using SoftFX.Net.Core;
 using SoftFX.Net.QuoteHistory;
+using ClientSession = SoftFX.Net.QuoteHistory.ClientSession;
+using ClientSessionOptions = SoftFX.Net.QuoteHistory.ClientSessionOptions;
 
 namespace TTQuoteHistoryClient
 {
@@ -80,21 +83,23 @@ namespace TTQuoteHistoryClient
 
         #region Constructors
 
-        public QuoteHistoryClient() : this(5020)
+        public QuoteHistoryClient(string name) : this(name, 5020)
         {
         }
 
-        public QuoteHistoryClient(int port) : this(port, new ClientSessionOptions(port) { ConnectMaxCount = 1, SendBufferSize = 1048576 })
+        public QuoteHistoryClient(string name, int port) : this(name, port, new ClientSessionOptions(port) { ConnectMaxCount = 1, SendBufferSize = 1048576 })
         {
         }
 
-        public QuoteHistoryClient(int port, ClientSessionOptions options)
-        {            
+        public QuoteHistoryClient(string name, int port, ClientSessionOptions options)
+        {
             options.ConnectPort = port;
-            options.Log.Events = true;
-            options.Log.States = true;
-            options.Log.Messages = true;
-            _session = new ClientSession("QuoteHistoryClient", options);
+            options.ConnectionType = ConnectionType.Secure;
+            options.ServerCertificateName = "TickTraderManagerService";
+            options.Log.Events = false;
+            options.Log.States = false;
+            options.Log.Messages = false;
+            _session = new ClientSession(name, options);
             _sessionListener = new ClientSessionListener(this);
             _session.Listener = _sessionListener;
         }
@@ -406,7 +411,7 @@ namespace TTQuoteHistoryClient
 
             // Send request to the server
             _session.SendSymbolsRequest(context, request);
-            
+
             // Return result task
             return context.Tcs.Task;
         }

@@ -12,6 +12,8 @@ namespace TTQuoteHistoryClientStressTest
             bool help = false;
 
             string address = "localhost";
+            string login = "5";
+            string password = "123qwe!";
             int port = 5020;
 
             DateTime timestamp = DateTime.UtcNow;
@@ -26,15 +28,17 @@ namespace TTQuoteHistoryClientStressTest
 
             var options = new OptionSet()
             {
-                { "a|address=", v => address = v },
-                { "p|port=", v => port = int.Parse(v) },
-                { "h|?|help",   v => help = v != null },
-                { "t|timestamp=", v => timestamp = DateTime.Parse(v) },
-                { "c|count=", v => count = int.Parse(v) },
-                { "s|symobl=", v => symbol = v },
-                { "d|periodicity=", v => periodicity = v },
-                { "q|threads=", v => threadCount = int.Parse(v) },
-                { "r|request=", v =>
+                { "address=", v => address = v },
+                { "login=", v => login = v },
+                { "password=", v => password = v },
+                { "port=", v => port = int.Parse(v) },
+                { "?|help",   v => help = v != null },
+                { "timestamp=", v => timestamp = DateTime.Parse(v) },
+                { "count=", v => count = int.Parse(v) },
+                { "symobl=", v => symbol = v },
+                { "periodicity=", v => periodicity = v },
+                { "threads=", v => threadCount = int.Parse(v) },
+                { "request=", v =>
                     {
                         switch (v.ToLowerInvariant())
                         {
@@ -81,13 +85,13 @@ namespace TTQuoteHistoryClientStressTest
             try
             {
                 // Create an instance of Quote History client
-                using (var client = new QuoteHistoryClient(port))
+                using (var client = new QuoteHistoryClient("QuoteHistoryCache", port))
                 {                  
                     // Connect to the server
                     client.Connect(address);
 
                     // Login
-                    client.Login("5", "123qwe!", "", "");
+                    client.Login(login, password, "", "");
 
                     ThreadParams threadParams = new ThreadParams();
                     threadParams.client = client;
