@@ -20,10 +20,11 @@ tthInit <- function() {
 #' @param address Url of the server
 #' @param port port
 #' @export
-tthConnect <- function(address = "tp.st.soft-fx.eu", port = 5020) {
+tthConnect <- function(address = "tp.st.soft-fx.eu",login = "5",password = "123qwe!", port = 5020, name = "client") {
   tthInit()
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', address, port)
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', name, address, port,login,password)
 }
+
 
 #' Disconnect from a TT server
 #'
