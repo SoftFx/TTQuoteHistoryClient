@@ -8,6 +8,6 @@ installRPackage <- function(url){
 	install.packages(package, repos = NULL, type = "source")
 	file.remove(package)
 }
-
-installRPackage("https://github.com/SoftFx/rFdk-/raw/master/Lib/RClr/rClr_0.7-4.zip");
+if(!require(rClr) )
+    installRPackage("https://github.com/SoftFx/rFdk-/raw/master/Lib/RClr/rClr_0.7-4.zip");
 installRPackage("https://github.com/SoftFx/TTQuoteHistoryClient/raw/master/rTTQuoteHistory/dist/rTTQuoteHistory_1.0.0.zip");
