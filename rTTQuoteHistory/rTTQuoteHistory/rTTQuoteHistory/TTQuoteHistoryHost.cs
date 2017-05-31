@@ -11,6 +11,10 @@ namespace rTTQuoteHistory
 {
     public class TTQuoteHistoryHost
     {
+        private const string DefaultAddress = "tpdemo.fxopen.com";
+        private const string DefaultLogin = "59932";
+        private const string DefaultPassword = "8mEx7zZ2";
+        private const string DefaultName = "client";
 
         private static QuoteHistoryClient _client;
         private static List<Bar> _barList;
@@ -18,9 +22,9 @@ namespace rTTQuoteHistory
 
         public static void Connect(string name ,string address, double port, string login, string password)
         {
-            _client = new QuoteHistoryClient(name, (int)port);
-            _client.Connect(address);
-            _client.Login(login,password,"","");
+            _client = new QuoteHistoryClient(name == "" ? DefaultName : name, (int)port);
+            _client.Connect(address == ""? DefaultAddress : address);
+            _client.Login(login == "" ? DefaultLogin : login,password == ""? DefaultPassword : password,"","");
         }
 
         public static void Disconnect()
