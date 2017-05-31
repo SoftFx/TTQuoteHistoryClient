@@ -23,9 +23,10 @@ tthInit <- function() {
 #' @param password password of the account
 #' @param name name of client
 #' @export
-tthConnect <- function(address = "",login = "",password = "", port = 5020, name = "") {
+tthConnect <- function(address = "",login = "",password = "", port = 5020, name = paste0("clinet_",Sys.getpid())) {
   tthInit()
   rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', name, address, port,login,password)
+  print(paste0(name," was created"))
 }
 
 
