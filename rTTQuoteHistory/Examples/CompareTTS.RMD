@@ -87,9 +87,9 @@ time_bars_bid_fdk <- 0
 time_bars_bid_cache <- 0
 step = 604800
 iterTime = startTimeTicks
-TTSAddress = "tp.dev.soft-fx.eu"
-TTSLogin = "5"
-TTSPassword = "123qwe!" 
+TTSAddress = "tpdemo.fxopen.com"
+TTSLogin = "59932"
+TTSPassword = "8mEx7zZ2"
 
 tz <- "UTC" 
 utits = "secs" 
@@ -99,7 +99,7 @@ require(rFdk)
 require(rTTQuoteHistory)
 
 ttConnect(TTSAddress,TTSLogin,TTSPassword)
-tthConnect(TTSAddress)
+tthConnect(TTSAddress,TTSLogin,TTSPassword)
 while(iterTime < endTimeTicks)
 {
   if (iterTime + step > endTimeTicks)
