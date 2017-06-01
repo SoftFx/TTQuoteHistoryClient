@@ -1,0 +1,24 @@
+tGetBarClose            Get Bar field
+tGetBarDataFrame        Get Bar table
+tGetBarDateTime         Get Bar field
+tGetBarHigh             Get Bar field
+tGetBarLow              Get Bar field
+tGetBarOpen             Get Bar field
+tGetBarVolume           Get Bar field
+tGetTickAsk             Get tick field
+tGetTickBid             Get tick field
+tGetTickDataFrame       Get tick table
+tGetTickDateTime        Get tick field
+tGetTickL2DataFrame     Get tick table
+tGetTickL2Level         Get tick field
+tGetTickL2PriceAsk      Get tick field
+tGetTickL2PriceBid      Get tick field
+tGetTickL2VolumeAsk     Get tick field
+tGetTickL2VolumeBid     Get tick field
+tthBarRequest           Gets the bars as requested
+tthConnect              Connects to a TT server
+tthDisconnect           Disconnect from a TT server
+tthInit                 Initialize the CLR runtime and loads
+                        QuoteHistory host assembly
+tthTickL2Request        Gets the ticks level 2 as requested
+tthTickRequest          Gets the ticks as requested

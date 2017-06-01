@@ -98,12 +98,10 @@ namespace rTTQuoteHistory
             }
             catch (TimeoutException ex)
             {
-                _barList = new List<Bar>();
                 return -1;
             }
             catch (Exception ex)
             {
-                _barList = new List<Bar>();
                 return -2;
             }
         }
@@ -175,12 +173,10 @@ namespace rTTQuoteHistory
             }
             catch (TimeoutException ex)
             {
-                _tickList = new List<Tick>();
                 return -1;
             }
             catch (Exception ex)
             {
-                _tickList = new List<Tick>();
                 return -2;
             }
         }
