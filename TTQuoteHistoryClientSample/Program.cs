@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using NDesk.Options;
 using TTQuoteHistoryClient;
 
@@ -17,12 +20,14 @@ namespace TTQuoteHistoryClientSample
 
             DateTime timestamp = DateTime.UtcNow;
             int count = 100;
+            int threads = 1;
             string symbol = "EURUSD";
             string periodicity = "M1";
             PriceType priceType = PriceType.Bid;
             bool bars = false;
             bool ticks = false;
             bool level2 = false;
+            bool verbose = false;
 
             var options = new OptionSet()
             {
@@ -35,6 +40,8 @@ namespace TTQuoteHistoryClientSample
                 { "c|count=", v => count = int.Parse(v) },
                 { "s|symobl=", v => symbol = v },
                 { "d|periodicity=", v => periodicity = v },
+                { "z|threads=", v => threads = int.Parse(v) },
+                { "v|verbose=", v => verbose = bool.Parse(v) },
                 { "r|request=", v =>
                     {
                         switch (v.ToLowerInvariant())
@@ -79,6 +86,16 @@ namespace TTQuoteHistoryClientSample
                 return;
             }
 
+            List<Task> tasks = new List<Task>();
+            for (int i = 0; i < threads; i++)
+                tasks.Add(Task.Factory.StartNew(() => WorkingThread(address, login, password, port, timestamp, count, symbol, periodicity, priceType, bars, ticks, level2, verbose), TaskCreationOptions.LongRunning));
+
+            foreach (var task in tasks)
+                task.Wait();
+        }
+
+        static void WorkingThread(string address, string login, string password, int port, DateTime timestamp, int count, string symbol, string periodicity, PriceType priceType, bool bars, bool ticks, bool level2, bool verbose)
+        {
             try
             {
                 // Create an instance of Quote History client
@@ -90,30 +107,14 @@ namespace TTQuoteHistoryClientSample
                     // Login
                     client.Login(login, password, "", "");
 
-                    // Request the server
                     if (level2)
-                    {
-                        // Request for the level2 history
-                        var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, true);
-                        foreach (var tick in result)
-                            Console.WriteLine(tick);
-                    }
+                        RequestTicks(client, timestamp, count, symbol, true, verbose);
 
                     if (ticks)
-                    {
-                        // Request for the ticks history
-                        var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, false);
-                        foreach (var tick in result)
-                            Console.WriteLine(tick);
-                    }
+                        RequestTicks(client, timestamp, count, symbol, false, verbose);
 
                     if (bars)
-                    {
-                        // Request for the bars history
-                        var result = client.QueryQuoteHistoryBars(timestamp, count, symbol, periodicity, priceType);
-                        foreach (var bar in result)
-                            Console.WriteLine(bar);
-                    }
+                        RequestBars(client, timestamp, count, symbol, periodicity, priceType, verbose);
 
                     // Logout
                     client.Logout("");
@@ -123,6 +124,82 @@ namespace TTQuoteHistoryClientSample
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        static void RequestTicks(QuoteHistoryClient client, DateTime timestamp, int count, string symbol, bool level2, bool verbose)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            bool backward = count < 0;
+            count = Math.Abs(count);
+
+            List<Tick> result;
+            for (int i = 0; i < count / 1000; i++)
+            {
+                // Request for the bars history
+                result = client.QueryQuoteHistoryTicks(timestamp, backward ? -1000 : 1000, symbol, level2);
+                if (result.Count > 0)
+                    timestamp = backward ? result[result.Count - 1].Id.Time : result[0].Id.Time;
+                if (verbose)
+                {
+                    foreach (var tick in result)
+                        Console.WriteLine(tick);
+                }
+            }
+
+            int remain = count % 1000;
+            if (remain > 0)
+            {
+                result = client.QueryQuoteHistoryTicks(timestamp, backward ? -remain : remain, symbol, level2);
+                if (verbose)
+                {
+                    foreach (var tick in result)
+                        Console.WriteLine(tick);
+                }
+            }
+
+            long elapsed = sw.ElapsedMilliseconds;
+            Console.WriteLine($"Elapsed = {elapsed}ms");
+            Console.WriteLine($"Throughput = {((double)count / (double)elapsed) * 1000.0:0.#####} ticks per second");
+        }
+
+        static void RequestBars(QuoteHistoryClient client, DateTime timestamp, int count, string symbol, string periodicity, PriceType priceType, bool verbose)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            bool backward = count < 0;
+            count = Math.Abs(count);
+
+            List<Bar> result;
+            for (int i = 0; i < count/5000; i++)
+            {
+                // Request for the bars history
+                result = client.QueryQuoteHistoryBars(timestamp, backward ? -5000 : 5000, symbol, periodicity, priceType);
+                if (result.Count > 0)
+                    timestamp = backward ? result[result.Count - 1].Time : result[0].Time;
+                if (verbose)
+                {
+                    foreach (var bar in result)
+                        Console.WriteLine(bar);
+                }
+            }
+
+            int remain = count%5000;
+            if (remain > 0)
+            {
+                result = client.QueryQuoteHistoryBars(timestamp, backward ? -remain : remain, symbol, periodicity, priceType);
+                if (verbose)
+                {
+                    foreach (var bar in result)
+                        Console.WriteLine(bar);
+                }
+            }
+
+            long elapsed = sw.ElapsedMilliseconds;
+            Console.WriteLine($"Elapsed = {elapsed}ms");
+            Console.WriteLine($"Throughput = {((double)count/(double)elapsed)*1000.0:0.#####} bars per second");
         }
     }
 }
