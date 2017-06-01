@@ -1,0 +1,403 @@
+---
+title: <b> "Comparing perfomance FDK and TTQuoteHistoryClient " </b>
+author: 
+date: '`r Sys.time()`'
+output: html_document
+params:
+  symbol: EURUSD
+--- 
+  
+  
+```{r setup, cache = F, echo = F, message = F, warning = F, tidy = F, results='hide'}
+if(!require("doParallel")){ 
+  install.packages("doParallel", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(doParallel) 
+} 
+if(!require("data.table")){ 
+  install.packages("data.table", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(data.table) 
+} 
+if(!require("plyr")){ 
+  install.packages("plyr", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(plyr) 
+} 
+
+if(!require("compare")){ 
+  install.packages("compare", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(compare) 
+} 
+
+if(!require("DT")){ 
+  install.packages("DT", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(DT) 
+} 
+
+if(!require("plotly")){ 
+  install.packages("plotly", repos = "http://cran.us.r-project.org", dependencies = TRUE)  
+  library(plotly) 
+} 
+
+
+#TickDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,12,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,12,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,04,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,04,05,00,00)))
+
+
+#BarDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,04,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,06,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,06,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,10,3,00,00)))
+
+
+# ##########################vars#################################
+TickDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,02,08,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,09,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,03,45,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,05,30,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,05,30,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,07,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,09,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,10,40,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,10,40,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,11,40,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,11,40,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,13,15,00)))
+
+#TickDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)))
+
+BarDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,19,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,17,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,07,00,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,10,17,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,19,14,00,00)), as.POSIXct(0,origin=ISOdatetime(2017,01,20,04,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,02,21,11,00,00)), as.POSIXct(0,origin=ISOdatetime(2017,02,21,11,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,05,01,03,00,00)),as.POSIXct(0,origin=ISOdatetime(2016,01,01,03,00,00)),as.POSIXct(0,origin=ISOdatetime(2016,04,29,03,00,00)))
+
+
+#BarDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00)),as.POSIXct(0,origin=ISOdatetime(2017,01,05,3,00,00)))
+
+
+
+IterationTick <-function(startTime,endTime)
+{
+  cl <- makeCluster(detectCores())
+  registerDoParallel(cl)
+  step = 604800
+  iterTime = startTime
+  while(iterTime < endTime)
+  {
+    if (iterTime + step > endTime)
+    {
+      step <- endTime - iterTime
+    }
+    
+    #########################  TiCKS     ###############################
+    for(i in 1:length(symbol))
+    {
+      time_taken <- system.time(ticks_fdk <-
+                                  ttFeed.TickBestHistory(symbol[i], iterTime, iterTime + step))
+      time_ticks_fdk <<- time_ticks_fdk + as.numeric(time_taken[3])
+      
+      countTicks <<- as.integer(countTicks + nrow(ticks_fdk))
+      count_fdk[i] <- nrow(ticks_fdk)
+    }
+    time_taken1 <- system.time(time_array<-foreach(i = 1:length(symbol),.packages = "rTTQuoteHistory",.export = c("count_fdk","TTSAddress","TTSLogin","TTSPassword","symbol")) %dopar%
+    {
+      time_taken<-system.time(tthConnect(TTSAddress,name = paste("client",as.character(i),sep="_"),login = TTSLogin,password = TTSPassword))
+      result<-time_taken[3]
+      ticks_cache <-tthTickRequest(symbol[i], iterTime, -count_fdk[i])
+      time_taken<-system.time(tthDisconnect())
+      result<-as.numeric(time_taken[3]) + result
+      result
+    })
+    time_ticks_cache <<- time_taken1[3] - min(unlist(time_array))
+    #   #######################    L2     #################################
+    for(i in 1:length(symbol))
+    {
+      time_taken <- system.time(ticksL2_fdk <-
+                                  ttFeed.TickLevel2History(symbol[i], iterTime, iterTime + step, 5))
+      time_ticksL2_fdk <<- time_ticksL2_fdk + as.numeric(time_taken[3])
+      
+      countL2 <<- as.integer(countL2 + floor(nrow(ticksL2_fdk) / 5))
+      count_fdk[i] <<- as.integer(floor(nrow(ticksL2_fdk) / 5))
+    }
+    time_taken1<-system.time(time_array<-foreach(i = 1:length(symbol),.packages = "rTTQuoteHistory",.export = c("count_fdk","TTSAddress","TTSLogin","TTSPassword","symbol")) %dopar%
+    {
+      time_taken<-system.time(tthConnect(TTSAddress,name = paste("client",as.character(i),sep="_"),login = TTSLogin,password = TTSPassword))
+      result<-time_taken[3]
+      ticksL2_cache <-tthTickL2Request(symbol[i], iterTime, -count_fdk[i])
+      time_taken<-system.time(tthDisconnect())
+      result<-as.numeric(time_taken[3]) + result
+      result
+    })
+    time_ticksL2_cache <<- time_taken1[3] - min(unlist(time_array))
+    iterTime <- iterTime + step
+  }
+  stopCluster(cl)
+}
+
+IterationBar <-function(startTime,endTime)
+{
+  cl <- makeCluster(length(symbol))
+  registerDoParallel(cl)
+  step = 604800
+  iterTime = startTime
+  while(iterTime<endTime)
+  {
+    if(iterTime + step > endTime)
+    {
+      step <- endTime - iterTime
+    }
+    #   ##########################    Bars_Bid    ##############################
+    for(i in 1:length(symbol))
+    {
+      time_taken <- system.time(bars_bid_fdk <- ttFeed.BarHistory(symbol[i],"Bid",startTime = iterTime,endTime = (iterTime + step)))
+      time_bars_bid_fdk <<- time_bars_bid_fdk + as.numeric(time_taken[3])
+      countBars_bid <<- as.integer(countBars_bid + nrow(bars_bid_fdk))
+      count_fdk[i] <<- nrow(bars_bid_fdk)
+    }
+    time_taken1<-system.time(time_array<-foreach(i = 1:length(symbol),.packages = "rTTQuoteHistory",.export = c("count_fdk","TTSAddress","TTSLogin","TTSPassword","symbol")) %dopar%
+    {
+      time_taken<-system.time(tthConnect(TTSAddress,name = paste("client",as.character(i),sep="_"),login = TTSLogin,password = TTSPassword))
+      result<-time_taken[3]
+      bars_bid_cache <- tthBarRequest(symbol[i],iterTime, -count_fdk[i],priceType = "Bid")
+      time_taken = system.time(tthDisconnect())
+      result<-as.numeric(time_taken[3]) + result
+      result
+    })
+    time_bars_bid_cache<<- time_taken1[3] - min(unlist(time_array))
+    iterTime <- iterTime + step
+  }
+  stopCluster(cl)
+}
+
+startTimeTicks<-as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00))
+endTimeTicks <- as.POSIXct(0,origin=ISOdatetime(2017,01,03,3,00,00))
+startTimeBars<- as.POSIXct(0,origin=ISOdatetime(2017,01,02,3,00,00))
+endTimeBars <- as.POSIXct(0,origin=ISOdatetime(2017,01,05,3,00,00))
+symbolArray <- list(c("EURUSD"),c("NZDUSD","USDCHF"),c("GBPUSD","AUDUSD","AUDCAD"),c("USDJPY","AUDCHF","USDCAD","AUDJPY"))
+resultTableTime <-data.table()
+resultTableSpeed<-data.table()
+resultTickTable1 <-data.table()
+resultTickL2Table1 <- data.table()
+resultBarTable1 <- data.table()
+resultTickTable2 <-data.table()
+resultTickL2Table2 <- data.table()
+resultBarTable2 <- data.table()
+resultTickTable3 <-data.table()
+resultTickL2Table3 <- data.table()
+resultBarTable3 <- data.table()
+resultTickTable4 <-data.table()
+resultTickL2Table4 <- data.table()
+resultBarTable4 <- data.table()
+resTicksAll <- data.table()
+
+resultTickTable5 <-data.table()
+resultTickL2Table5 <- data.table()
+resultBarTable5 <- data.table()
+
+resL2All <-  data.table()
+resBarsAll <-  data.table()
+countTicks = 0
+countL2 = 0
+
+time_taken = 0
+countBars_bid = 0
+time_ticks_fdk <- 0
+time_ticks_cache <- 0
+time_ticksL2_fdk <- 0
+time_ticksL2_cache <- 0
+time_bars_ask_fdk <- 0
+time_bars_ask_cache <- 0
+time_bars_bid_fdk <- 0
+time_bars_bid_cache <- 0
+ticksL2_cache = 0
+ticksL2_fdk= 0
+ticks_cache= 0
+ticks_fdk= 0
+bars_bid_cache = 0
+bars_bid_fdk = 0
+TTSAddress = "tp.dev.soft-fx.eu"
+TTSLogin = "5"
+TTSPassword = "123qwe!" 
+
+tz <- "UTC" 
+utits = "secs" 
+
+
+require(rFdk)
+require(rTTQuoteHistory)
+
+ttConnect(TTSAddress,TTSLogin,TTSPassword)
+symbol <-symbolArray[[1]]
+count_fdk = 1:length(symbol)
+for(i in 1:(length(TickDateArray)/2))
+  {
+    countTicks = 0
+    countL2 = 0
+    time_ticks_fdk <- 0
+    time_ticks_cache <- 0
+    time_ticksL2_fdk <- 0
+    time_ticksL2_cache <- 0
+    IterationTick(TickDateArray[2*i-1],TickDateArray[2*i])
+    resultTickTable1 <- rbind(resultTickTable1,data.table(count = countTicks, speedTickFDK = countTicks/time_ticks_fdk, speedTickTTH = countTicks/time_ticks_cache, CountSymbols = "1"))
+    
+    resultTickL2Table1 <-rbind(resultTickL2Table1,data.table(countL2 = countL2, speedL2FDK  = countL2/time_ticksL2_fdk, speedL2TTH =  countL2/time_ticksL2_cache, CountSymbols = "1"))
+   
+  }
+  resTicksAll <- rbind(resTicksAll, resultTickTable1)
+  resL2All <- rbind(resL2All, resultTickL2Table1)
+  
+  
+  for(i in 1:(length(BarDateArray)/2))
+  {
+    countBars_bid = 0
+    countBars_ask = 0
+    time_bars_ask_fdk <- 0
+    time_bars_ask_cache <- 0
+    time_bars_bid_fdk <- 0
+    time_bars_bid_cache <- 0
+    IterationBar(BarDateArray[2*i-1],BarDateArray[2*i])
+    resultBarTable1 <- rbind(resultBarTable1,data.table(count = countBars_bid, speedBarFDK = countBars_bid/time_bars_bid_fdk,speedBarTTH = countBars_bid/time_bars_bid_cache, CountSymbols = "1"))
+  
+  }
+  
+  resBarsAll <- rbind(resBarsAll, resultBarTable1)
+  
+symbol <-symbolArray[[2]]
+count_fdk = 1:length(symbol)
+for(i in 1:(length(TickDateArray)/2))
+  {
+    countTicks = 0
+    countL2 = 0
+    time_ticks_fdk <- 0
+    time_ticks_cache <- 0
+    time_ticksL2_fdk <- 0
+    time_ticksL2_cache <- 0
+    IterationTick(TickDateArray[2*i-1],TickDateArray[2*i])
+    resultTickTable2 <- rbind(resultTickTable2,data.table(count = countTicks, speedTickFDK = countTicks/time_ticks_fdk, speedTickTTH = countTicks/time_ticks_cache, CountSymbols = "2"))
+    
+    resultTickL2Table2 <-rbind(resultTickL2Table2,data.table(countL2 = countL2, speedL2FDK  = countL2/time_ticksL2_fdk, speedL2TTH =  countL2/time_ticksL2_cache, CountSymbols = "2"))
+   
+  }
+  
+resTicksAll <- rbind(resTicksAll, resultTickTable2)
+resL2All <- rbind(resL2All, resultTickL2Table2)
+
+  for(i in 1:(length(BarDateArray)/2))
+  {
+    countBars_bid = 0
+    countBars_ask = 0
+    time_bars_ask_fdk <- 0
+    time_bars_ask_cache <- 0
+    time_bars_bid_fdk <- 0
+    time_bars_bid_cache <- 0
+    IterationBar(BarDateArray[2*i-1],BarDateArray[2*i])
+    resultBarTable2 <- rbind(resultBarTable2,data.table(count = countBars_bid, speedBarFDK = countBars_bid/time_bars_bid_fdk,speedBarTTH = countBars_bid/time_bars_bid_cache, CountSymbols = "2"))
+  }
+resBarsAll <- rbind(resBarsAll, resultBarTable2)
+
+
+symbol <-symbolArray[[3]]
+count_fdk = 1:length(symbol)
+for(i in 1:(length(TickDateArray)/2))
+  {
+    countTicks = 0
+    countL2 = 0
+    time_ticks_fdk <- 0
+    time_ticks_cache <- 0
+    time_ticksL2_fdk <- 0
+    time_ticksL2_cache <- 0
+    IterationTick(TickDateArray[2*i-1],TickDateArray[2*i])
+    resultTickTable3 <- rbind(resultTickTable3,data.table(count = countTicks, speedTickFDK = countTicks/time_ticks_fdk, speedTickTTH = countTicks/time_ticks_cache, CountSymbols = "3"))
+     
+    resultTickL2Table3 <-rbind(resultTickL2Table3,data.table(countL2 = countL2, speedL2FDK  = countL2/time_ticksL2_fdk, speedL2TTH =  countL2/time_ticksL2_cache, CountSymbols = "3"))
+    
+}
+
+resTicksAll <- rbind(resTicksAll, resultTickTable3)
+resL2All <- rbind(resL2All, resultTickL2Table3)
+  
+  for(i in 1:(length(BarDateArray)/2))
+  {
+    countBars_bid = 0
+    countBars_ask = 0
+    time_bars_ask_fdk <- 0
+    time_bars_ask_cache <- 0
+    time_bars_bid_fdk <- 0
+    time_bars_bid_cache <- 0
+    IterationBar(BarDateArray[2*i-1],BarDateArray[2*i])
+    resultBarTable3 <- rbind(resultBarTable3,data.table(count = countBars_bid, speedBarFDK = countBars_bid/time_bars_bid_fdk,speedBarTTH = countBars_bid/time_bars_bid_cache, CountSymbols = "3"))
+  }
+resBarsAll <- rbind(resBarsAll, resultBarTable3)
+
+
+symbol <-symbolArray[[4]]
+count_fdk = 1:length(symbol)
+for(i in 1:(length(TickDateArray)/2))
+  {
+    countTicks = 0
+    countL2 = 0
+    time_ticks_fdk <- 0
+    time_ticks_cache <- 0
+    time_ticksL2_fdk <- 0
+    time_ticksL2_cache <- 0
+    IterationTick(TickDateArray[2*i-1],TickDateArray[2*i])
+    resultTickTable4 <- rbind(resultTickTable4,data.table(count = countTicks, speedTickFDK = countTicks/time_ticks_fdk, speedTickTTH = countTicks/time_ticks_cache, CountSymbols = "4"))
+    
+    resultTickTable5 <- rbind(resultTickTable5,data.table(count = countTicks, speedTickTTH = countTicks/time_ticks_fdk, speedTickFDK = countTicks/time_ticks_cache, CountSymbols = "5"))
+    
+    resultTickL2Table4 <-rbind(resultTickL2Table4,data.table(countL2 = countL2, speedL2FDK  = countL2/time_ticksL2_fdk, speedL2TTH =  countL2/time_ticksL2_cache, CountSymbols = "4"))
+     resultTickL2Table5 <-rbind(resultTickL2Table5,data.table(countL2 = countL2, speedL2TTH  = countL2/time_ticksL2_fdk, speedL2FDK =  countL2/time_ticksL2_cache, CountSymbols = "5"))
+    
+  }
+  
+resTicksAll <- rbind(resTicksAll, resultTickTable4)
+resTicksAll <- rbind(resTicksAll, resultTickTable5)
+
+resL2All <- rbind(resL2All, resultTickL2Table4)
+resL2All <- rbind(resL2All, resultTickL2Table5)
+
+  for(i in 1:(length(BarDateArray)/2))
+  {
+    countBars_bid = 0
+    countBars_ask = 0
+    time_bars_ask_fdk <- 0
+    time_bars_ask_cache <- 0
+    time_bars_bid_fdk <- 0
+    time_bars_bid_cache <- 0
+    IterationBar(BarDateArray[2*i-1],BarDateArray[2*i])
+    resultBarTable4 <- rbind(resultBarTable4,data.table(count = countBars_bid, speedBarFDK = countBars_bid/time_bars_bid_fdk,speedBarTTH = countBars_bid/time_bars_bid_cache, CountSymbols = "4"))
+     resultBarTable5 <- rbind(resultBarTable5,data.table(count = countBars_bid, speedBarTTH = countBars_bid/time_bars_bid_fdk,speedBarFDK = countBars_bid/time_bars_bid_cache, CountSymbols = "5"))
+  }
+resBarsAll <- rbind(resBarsAll, resultBarTable4)
+resBarsAll <- rbind(resBarsAll, resultBarTable5)
+
+ttDisconnect()
+
+```
+
+<b> Plan: </b> <br>
+  1) FDK: Getting ticks from TT Server  <br>
+  2) Cash: FDK: Getting ticks from TT Server  <br>
+  3) FDK: Getting L2 from TT Server  <br>
+  4) Cash: FDK: Getting L2 from TT Server  <br>
+  5) FDK: Getting bars from TT Server  <br>
+  6) Cash: FDK: Getting bars from TT Server  <br>
+ 
+ <br>
+  
+  TT Server name:  <b>  `r  TTSAddress ` </b>   <br> 
+  Count ticks:  <b>  `r  countTicks ` </b>   <br> 
+  Ticks period: from `r startTimeTicks ` to `r endTimeTicks ` <br> 
+  <br>
+  Count bars:  <b>  `r  countBars_bid ` </b>   <br> 
+  Bars period: from `r startTimeBars ` to `r endTimeBars ` <br> 
+  
+  Ticks
+ ```{r echo=F, warning = F}
+
+p2 <- ggplot(resTicksAll, aes(x=count, y=speedTickTTH, colour=CountSymbols)) +
+    geom_point(alpha=.3) +
+    geom_smooth(alpha=.2, size=1) +
+    ggtitle("Ticks")
+p2
+#plot_ly(p2)
+
+
+p3 <- ggplot(resL2All, aes(x=countL2, y=speedL2TTH, colour=CountSymbols)) +
+    geom_point(alpha=.3) +
+    geom_smooth(alpha=.2, size=1) +
+    ggtitle("L2")
+p3
+
+#plot_ly(p3)
+
+
+p4 <- ggplot(resBarsAll, aes(x=count, y=speedBarTTH, colour=CountSymbols)) +
+    geom_point(alpha=.3) +
+    geom_smooth(alpha=.2, size=1) +
+    ggtitle("Bars")
+p4
+    
+#plot_ly(p4)
+```
+

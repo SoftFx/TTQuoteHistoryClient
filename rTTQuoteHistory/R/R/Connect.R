@@ -19,15 +19,24 @@ tthInit <- function() {
 #'
 #' @param address Url of the server
 #' @param port port
+#' @param login account you login
+#' @param password password of the account
+#' @param name name of client
 #' @export
-tthConnect <- function(address = "tp.st.soft-fx.eu", port = 5020) {
+tthConnect <- function(address = "",login = "",password = "", port = 5020, name = paste0("clinet_",Sys.getpid())) {
   tthInit()
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', address, port)
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', name, address, port,login,password)
+  if(hResult == 0){print(paste0(name," was created"))}
+  if(hResult == -1){print("Client didn't connect with TimeoutEcxeption")}
+  if(hResult == -2){print("Client didn't connect with DisconnectEcxeption")}
 }
+
 
 #' Disconnect from a TT server
 #'
 #' @export
 tthDisconnect <- function() {
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Disconnect')
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Disconnect')
+  if(hResult == 0){print(paste0(name," was disconnected"))}
+  if(hResult == -1){print("Client can't disconnect")}
 }
