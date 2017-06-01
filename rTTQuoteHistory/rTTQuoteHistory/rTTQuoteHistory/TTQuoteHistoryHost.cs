@@ -20,19 +20,23 @@ namespace rTTQuoteHistory
         private static List<Bar> _barList;
         private static List<Tick> _tickList;
 
-        public static bool Connect(string name ,string address, double port, string login, string password)
+        public static int Connect(string name ,string address, double port, string login, string password)
         {
             try
             {
-                _client = new QuoteHistoryClient(name == "" ? DefaultName : name, (int)port);
+                _client = new QuoteHistoryClient(name == "" ? DefaultName : name, (int) port);
                 _client.Connect(address == "" ? DefaultAddress : address);
                 _client.Login(login == "" ? DefaultLogin : login, password == "" ? DefaultPassword : password, "", "");
-                return true;
+                return 0;
             }
-            catch (Exception ex)
+            catch (TimeoutException ex)
             {
-                return false;
-            }       
+                return -1;
+            }
+            catch (SoftFX.Net.Core.DisconnectException ex)
+            {
+                return -2;
+            }
         }
 
         public static void Disconnect()
@@ -41,38 +45,57 @@ namespace rTTQuoteHistory
         }
 
         #region Bars
-        public static void BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
+        public static int BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
             try
             {
                 var sign = Math.Sign(count);
-                if (count * sign <= 5000)
+                if (count*sign <= 5000)
                 {
-                    _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
-                    timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                    _barList =
+                        _client.QueryQuoteHistoryBars(
+                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
+                                timestamp.Minute, timestamp.Second,
+                                timestamp.Millisecond, DateTimeKind.Utc), (int) count, symbol, periodicity,
+                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                 }
                 else
                 {
-                    _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
-                    timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                    _barList =
+                        _client.QueryQuoteHistoryBars(
+                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
+                                timestamp.Minute, timestamp.Second,
+                                timestamp.Millisecond, DateTimeKind.Utc), 5000*sign, symbol, periodicity,
+                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                     if (_barList.Count > 0)
                         timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
-                    for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
+                    for (int i = 5000*sign; sign*i < sign*count; i += (5000*sign))
                     {
-                        var buf = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
-                    timestamp.Millisecond, DateTimeKind.Utc), (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                        var buf =
+                            _client.QueryQuoteHistoryBars(
+                                new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
+                                    timestamp.Minute, timestamp.Second,
+                                    timestamp.Millisecond, DateTimeKind.Utc),
+                                (sign*(count - i) > 5000) ? sign*5000 : sign*(int) (count - i), symbol, periodicity,
+                                priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                         _barList.AddRange(buf);
                         if (buf.Count > 0)
                             timestamp = (sign < 0) ? buf[buf.Count - 1].Time : buf[0].Time;
                     }
                 }
+                return 0;
+            }
+            catch (TimeoutException ex)
+            {
+                _barList = new List<Bar>();
+                return -1;
             }
             catch (Exception ex)
             {
                 _barList = new List<Bar>();
-            }
-            
+                return -2;
+            }          
         }
 
         public static DateTime[] GetBarTime()
@@ -107,7 +130,7 @@ namespace rTTQuoteHistory
         #endregion
 
         #region Ticks
-        public static void TickRequest(DateTime timestamp, double count, string symbol, bool level2)
+        public static int TickRequest(DateTime timestamp, double count, string symbol, bool level2)
         {
             try
             {
@@ -138,10 +161,17 @@ namespace rTTQuoteHistory
                             timestamp = (sign < 0) ? buf[buf.Count - 1].Id.Time : buf[0].Id.Time;
                     }
                 }
+                return 0;
+            }
+            catch (TimeoutException ex)
+            {
+                _tickList = new List<Tick>();
+                return -1;
             }
             catch (Exception ex)
             {
                 _tickList = new List<Tick>();
+                return -2;
             }
         }
 
