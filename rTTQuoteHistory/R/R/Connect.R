@@ -36,5 +36,7 @@ tthConnect <- function(address = "",login = "",password = "", port = 5020, name 
 #'
 #' @export
 tthDisconnect <- function() {
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Disconnect')
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Disconnect')
+  if(hResult == 0){print(paste0(name," was disconnected"))}
+  if(hResult == -1){print("Client can't disconnect")}
 }

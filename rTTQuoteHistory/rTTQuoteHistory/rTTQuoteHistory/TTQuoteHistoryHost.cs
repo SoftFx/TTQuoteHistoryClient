@@ -20,11 +20,11 @@ namespace rTTQuoteHistory
         private static List<Bar> _barList;
         private static List<Tick> _tickList;
 
-        public static int Connect(string name ,string address, double port, string login, string password)
+        public static int Connect(string name, string address, double port, string login, string password)
         {
             try
             {
-                _client = new QuoteHistoryClient(name == "" ? DefaultName : name, (int) port);
+                _client = new QuoteHistoryClient(name == "" ? DefaultName : name, (int)port);
                 _client.Connect(address == "" ? DefaultAddress : address);
                 _client.Login(login == "" ? DefaultLogin : login, password == "" ? DefaultPassword : password, "", "");
                 return 0;
@@ -39,9 +39,19 @@ namespace rTTQuoteHistory
             }
         }
 
-        public static void Disconnect()
+        public static int Disconnect()
         {
-            _client.Disconnect();
+            try
+            {
+                _client.Disconnect();
+                return 0;
+            }
+            catch (Exception)
+            {
+
+                return -1;
+            }
+
         }
 
         #region Bars
@@ -51,13 +61,13 @@ namespace rTTQuoteHistory
             try
             {
                 var sign = Math.Sign(count);
-                if (count*sign <= 5000)
+                if (count * sign <= 5000)
                 {
                     _barList =
                         _client.QueryQuoteHistoryBars(
                             new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
                                 timestamp.Minute, timestamp.Second,
-                                timestamp.Millisecond, DateTimeKind.Utc), (int) count, symbol, periodicity,
+                                timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity,
                             priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                 }
                 else
@@ -66,18 +76,18 @@ namespace rTTQuoteHistory
                         _client.QueryQuoteHistoryBars(
                             new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
                                 timestamp.Minute, timestamp.Second,
-                                timestamp.Millisecond, DateTimeKind.Utc), 5000*sign, symbol, periodicity,
+                                timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity,
                             priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                     if (_barList.Count > 0)
                         timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
-                    for (int i = 5000*sign; sign*i < sign*count; i += (5000*sign))
+                    for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
                     {
                         var buf =
                             _client.QueryQuoteHistoryBars(
                                 new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
                                     timestamp.Minute, timestamp.Second,
                                     timestamp.Millisecond, DateTimeKind.Utc),
-                                (sign*(count - i) > 5000) ? sign*5000 : sign*(int) (count - i), symbol, periodicity,
+                                (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity,
                                 priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                         _barList.AddRange(buf);
                         if (buf.Count > 0)
@@ -95,7 +105,7 @@ namespace rTTQuoteHistory
             {
                 _barList = new List<Bar>();
                 return -2;
-            }          
+            }
         }
 
         public static DateTime[] GetBarTime()
@@ -273,39 +283,39 @@ namespace rTTQuoteHistory
             try
             {
                 // Create an instance of Quote History client
-                
-                    // Connect to the server
-                   // Connect(address,port);
 
-                    // Request the server
-                    if (level2)
-                    {
-                        // Request for the level2 history
-                      //  var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, true);
+                // Connect to the server
+                // Connect(address,port);
+
+                // Request the server
+                if (level2)
+                {
+                    // Request for the level2 history
+                    //  var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, true);
                     //    foreach (var tick in result)
-                     //       Console.WriteLine(tick);
-                    }
-                    else if (ticks)
-                    {
-                        // Request for the ticks history
+                    //       Console.WriteLine(tick);
+                }
+                else if (ticks)
+                {
+                    // Request for the ticks history
                     //    var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, false);
-                   //     foreach (var tick in result)
-                  //          Console.WriteLine(tick);
-                    }
-                    else if (bars)
-                    {
-                        // Request for the bars history
-                        var time = DateTime.Now;
-                        BarRequest(timestamp, count, symbol, periodicity, "Bid");
-                        var res = time - DateTime.Now;
-                        Console.WriteLine(res);
-                        // foreach (var bar in result)
-                        //    Console.WriteLine(bar);
-                    }
+                    //     foreach (var tick in result)
+                    //          Console.WriteLine(tick);
+                }
+                else if (bars)
+                {
+                    // Request for the bars history
+                    var time = DateTime.Now;
+                    BarRequest(timestamp, count, symbol, periodicity, "Bid");
+                    var res = time - DateTime.Now;
+                    Console.WriteLine(res);
+                    // foreach (var bar in result)
+                    //    Console.WriteLine(bar);
+                }
 
-                    // Disconnect to the server
-                    _client.Disconnect();
-                
+                // Disconnect to the server
+                _client.Disconnect();
+
             }
             catch (Exception ex)
             {
