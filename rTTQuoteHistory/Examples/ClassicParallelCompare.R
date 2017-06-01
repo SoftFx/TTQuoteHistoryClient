@@ -7,7 +7,7 @@ library(lubridate)
 library(ggplot2)
 
 Init<-function(){
-    tthConnect("tp.dev.soft-fx.eu", login = "5",password = "123qwe!", name=UUIDgenerate())
+    tthConnect("@host", login = "5",password = "123qwe!", name=UUIDgenerate())
 }
 Deinit<-function(){tthDisconnect()}
 Payload<-function(symbols, barsCount){
