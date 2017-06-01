@@ -12,8 +12,12 @@ Init<-function(){
 Deinit<-function(){tthDisconnect()}
 Payload<-function(symbols, barsCount){
     sapply(symbols, function(symbol) {
+        
         d<-tthBarRequest(symbol, now("UTC"), barsCount)
-        print(paste0("requested number: ", barsCount, " received number: ", nrow(d)))
+        if( is.null(d))
+            stop("Bar Request returned error.")
+        if( nrow(d) != barsCount )
+            stop(paste(symbol, ": wrong number of bars. Expected ", barsCount, ", but received ", nrow(d)))
     })
 }
 
@@ -39,9 +43,9 @@ RunTest <-function(vectorVariable1, seqVariable1, clusterCount, fInit, fDeinit, 
 }
 
 ttConnect()
-
-exp<-as.data.table(expand.grid(symbolsCount=2^(0), barsCount=2^(c(18:18)), clusterCount=2^(0:2)))
 symbols<-ttConf.Symbol()
+
+exp<-as.data.table(expand.grid(symbolsCount=2^(2), barsCount=2^(c(16:18)), clusterCount=2^(0:1)))
 
 result<-mapply(RunTest, lapply(exp$symbolsCount, function(count) symbols[1:count, name]), 
                exp$barsCount, exp$clusterCount, MoreArgs=list(fInit=Init, fDeinit=Deinit, fPayload=Payload))
