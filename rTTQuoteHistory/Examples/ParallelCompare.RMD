@@ -58,7 +58,7 @@ BarDateArray = c(as.POSIXct(0,origin=ISOdatetime(2017,01,01,3,00,00)),as.POSIXct
 
 IterationTick <-function(startTime,endTime)
 {
-  cl <- makeCluster(3)
+  cl <- makeCluster(detectCores())
   registerDoParallel(cl)
   step = 604800
   iterTime = startTime

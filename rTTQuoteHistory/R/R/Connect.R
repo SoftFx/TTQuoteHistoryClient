@@ -19,10 +19,15 @@ tthInit <- function() {
 #'
 #' @param address Url of the server
 #' @param port port
+#' @param login account you login
+#' @param password password of the account
+#' @param name name of client
 #' @export
-tthConnect <- function(address = "tp.st.soft-fx.eu",login = "5",password = "123qwe!", port = 5020, name = "client") {
+tthConnect <- function(address = "",login = "",password = "", port = 5020, name = paste0("clinet_",Sys.getpid())) {
   tthInit()
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', name, address, port,login,password)
+  if(rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Connect', name, address, port,login,password))
+  {print(paste0(name," was created"))}
+  else{print("Client didn't connect")}
 }
 
 

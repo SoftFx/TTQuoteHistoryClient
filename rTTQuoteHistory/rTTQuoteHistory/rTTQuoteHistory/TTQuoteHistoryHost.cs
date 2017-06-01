@@ -11,16 +11,28 @@ namespace rTTQuoteHistory
 {
     public class TTQuoteHistoryHost
     {
+        private const string DefaultAddress = "tpdemo.fxopen.com";
+        private const string DefaultLogin = "59932";
+        private const string DefaultPassword = "8mEx7zZ2";
+        private const string DefaultName = "client";
 
         private static QuoteHistoryClient _client;
         private static List<Bar> _barList;
         private static List<Tick> _tickList;
 
-        public static void Connect(string name ,string address, double port, string login, string password)
+        public static bool Connect(string name ,string address, double port, string login, string password)
         {
-            _client = new QuoteHistoryClient(name, (int)port);
-            _client.Connect(address);
-            _client.Login(login,password,"","");
+            try
+            {
+                _client = new QuoteHistoryClient(name == "" ? DefaultName : name, (int)port);
+                _client.Connect(address == "" ? DefaultAddress : address);
+                _client.Login(login == "" ? DefaultLogin : login, password == "" ? DefaultPassword : password, "", "");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }       
         }
 
         public static void Disconnect()
@@ -32,27 +44,35 @@ namespace rTTQuoteHistory
         public static void BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
-            var sign = Math.Sign(count);
-            if (count * sign <= 5000)
+            try
             {
-                _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
-                timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-            }
-            else
-            {
-                _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
-                timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-                if (_barList.Count > 0)
-                    timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
-                for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
+                var sign = Math.Sign(count);
+                if (count * sign <= 5000)
                 {
-                    var buf = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
-                timestamp.Millisecond, DateTimeKind.Utc), (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-                    _barList.AddRange(buf);
-                    if (buf.Count > 0)
-                        timestamp = (sign < 0) ? buf[buf.Count - 1].Time : buf[0].Time;
+                    _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
+                    timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                }
+                else
+                {
+                    _barList = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
+                    timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                    if (_barList.Count > 0)
+                        timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
+                    for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
+                    {
+                        var buf = _client.QueryQuoteHistoryBars(new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second,
+                    timestamp.Millisecond, DateTimeKind.Utc), (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                        _barList.AddRange(buf);
+                        if (buf.Count > 0)
+                            timestamp = (sign < 0) ? buf[buf.Count - 1].Time : buf[0].Time;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                _barList = new List<Bar>();
+            }
+            
         }
 
         public static DateTime[] GetBarTime()
@@ -89,32 +109,39 @@ namespace rTTQuoteHistory
         #region Ticks
         public static void TickRequest(DateTime timestamp, double count, string symbol, bool level2)
         {
-            var sign = Math.Sign(count);
-            if (count * sign <= 1000)
+            try
             {
-                _tickList =
-                    _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, level2);
-            }
-            else
-            {
-                _tickList =
-                    _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), 1000 * sign, symbol, level2);
-                if (_tickList.Count > 0)
-                    timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
-                for (int i = 1000 * sign; sign * i < sign * count; i += (1000 * sign))
+                var sign = Math.Sign(count);
+                if (count * sign <= 1000)
                 {
-                    var buf = _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc),
-                        (sign * (count - i) > 1000) ? sign * 1000 : sign * (int)(count - i), symbol, level2);
-                    _tickList.AddRange(buf);
-                    if (buf.Count > 0)
-                        timestamp = (sign < 0) ? buf[buf.Count - 1].Id.Time : buf[0].Id.Time;
+                    _tickList =
+                        _client.QueryQuoteHistoryTicks(
+                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                                timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, level2);
                 }
+                else
+                {
+                    _tickList =
+                        _client.QueryQuoteHistoryTicks(
+                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                                timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), 1000 * sign, symbol, level2);
+                    if (_tickList.Count > 0)
+                        timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
+                    for (int i = 1000 * sign; sign * i < sign * count; i += (1000 * sign))
+                    {
+                        var buf = _client.QueryQuoteHistoryTicks(
+                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                                timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc),
+                            (sign * (count - i) > 1000) ? sign * 1000 : sign * (int)(count - i), symbol, level2);
+                        _tickList.AddRange(buf);
+                        if (buf.Count > 0)
+                            timestamp = (sign < 0) ? buf[buf.Count - 1].Id.Time : buf[0].Id.Time;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _tickList = new List<Tick>();
             }
         }
 
