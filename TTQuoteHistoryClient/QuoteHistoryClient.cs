@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using SoftFX.Net.Core;
 using SoftFX.Net.QuoteHistory;
@@ -13,7 +12,7 @@ namespace TTQuoteHistoryClient
 {
     public class QuoteHistoryClient : IDisposable
     {
-        public static TimeSpan Timeout = TimeSpan.FromMilliseconds(10000);
+        public static TimeSpan Timeout = TimeSpan.FromMilliseconds(60000);
 
         private readonly ClientSession _session;
         private readonly ClientSessionListener _sessionListener;
@@ -77,6 +76,59 @@ namespace TTQuoteHistoryClient
             public void SetException(Exception ex) { Tcs.SetException(ex); }
 
             public readonly TaskCompletionSource<List<Tick>> Tcs = new TaskCompletionSource<List<Tick>>();
+        }
+
+        private class QueryQuoteHistoryBarsFilesAsyncContext : BarsFileRequestClientContext, IAsyncContext
+        {
+            public QueryQuoteHistoryBarsFilesAsyncContext() : base(false) { }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<List<byte[]>> Tcs = new TaskCompletionSource<List<byte[]>>();
+        }
+
+        private class QueryQuoteHistoryTicksFilesAsyncContext : TicksFileRequestClientContext, IAsyncContext
+        {
+            public QueryQuoteHistoryTicksFilesAsyncContext() : base(false) { }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<List<byte[]>> Tcs = new TaskCompletionSource<List<byte[]>>();
+        }
+
+        private class FileAsyncContext : FileRequestClientContext, IAsyncContext
+        {
+            public List<string> FileIds { get; set; }
+            public int FileIndex { get; set; }
+            public int ChunkIndex { get; set; }
+
+            public List<byte> Buffer { get; set; }
+            public List<byte[]> Files { get; set; }
+
+            public FileAsyncContext() : base(false)
+            {
+                FileIds = new List<string>();
+                Buffer = new List<byte>();
+                Files = new List<byte[]>();
+            }
+
+            public void SetException(Exception ex) { Tcs.SetException(ex); }
+
+            public readonly TaskCompletionSource<byte[]> Tcs = new TaskCompletionSource<byte[]>();
+        }
+
+        private class BarsFileAsyncContext : FileAsyncContext
+        {
+            public QueryQuoteHistoryBarsFilesAsyncContext ParentContext { get; set; }
+
+            public BarsFileAsyncContext(QueryQuoteHistoryBarsFilesAsyncContext parent) { ParentContext = parent; }
+        }
+
+        private class TicksFileAsyncContext : FileAsyncContext
+        {
+            public QueryQuoteHistoryTicksFilesAsyncContext ParentContext { get; set; }
+
+            public TicksFileAsyncContext(QueryQuoteHistoryTicksFilesAsyncContext parent) { ParentContext = parent; }
         }
 
         #endregion
@@ -274,6 +326,94 @@ namespace TTQuoteHistoryClient
                 var context = (QueryQuoteHistoryTicksAsyncContext) TicksRequestClientContext;
                 var exception = new Exception(reject.Message);
                 context.Tcs.SetException(exception);
+            }
+
+            public override void OnBarsFileReport(ClientSession session, BarsFileRequestClientContext BarsFileRequestClientContext, QueryBarsFileReport report)
+            {
+                var context = (QueryQuoteHistoryBarsFilesAsyncContext)BarsFileRequestClientContext;
+
+                if (report.Files.Length > 0)
+                {
+                    var fileContext = new BarsFileAsyncContext(context);
+                    for (int i = 0; i < report.Files.Length; i++)
+                        fileContext.FileIds.Add(report.Files[i].FileId);
+
+                    var request = new FileRequest(0);
+                    request.FileId = fileContext.FileIds[0];
+                    request.Chunk = 0;
+                    session.SendFileRequest(fileContext, request);
+                }
+                else
+                    context.Tcs.SetResult(new List<byte[]>());
+            }
+
+            public override void OnBarsFileReject(ClientSession session, BarsFileRequestClientContext BarsFileRequestClientContext, QueryReject reject)
+            {
+                var context = (QueryQuoteHistoryBarsFilesAsyncContext)BarsFileRequestClientContext;
+                var exception = new Exception(reject.Message);
+                context.Tcs.SetException(exception);
+            }
+
+            public override void OnTicksFileReport(ClientSession session, TicksFileRequestClientContext TicksFileRequestClientContext, QueryTicksFileReport report)
+            {
+                var context = (QueryQuoteHistoryTicksFilesAsyncContext)TicksFileRequestClientContext;
+
+                if (report.Files.Length > 0)
+                {
+                    var fileContext = new TicksFileAsyncContext(context);
+                    for (int i = 0; i < report.Files.Length; i++)
+                        fileContext.FileIds.Add(report.Files[i].FileId);
+
+                    var request = new FileRequest(0);
+                    request.FileId = fileContext.FileIds[0];
+                    request.Chunk = 0;
+                    session.SendFileRequest(fileContext, request);
+                }
+                else
+                    context.Tcs.SetResult(new List<byte[]>());
+            }
+
+            public override void OnTicksFileReject(ClientSession session, TicksFileRequestClientContext TicksFileRequestClientContext, QueryReject reject)
+            {
+                var context = (QueryQuoteHistoryTicksFilesAsyncContext)TicksFileRequestClientContext;
+                var exception = new Exception(reject.Message);
+                context.Tcs.SetException(exception);
+            }
+
+            public override void OnFileReport(ClientSession session, FileRequestClientContext FileRequestClientContext, FileReport report)
+            {
+                var context = (FileAsyncContext)FileRequestClientContext;
+                context.Buffer.AddRange(report.Content);
+
+                if (report.EndOfFile)
+                {
+                    context.Files.Add(context.Buffer.ToArray());
+                    context.Buffer.Clear();
+                    context.FileIndex++;
+                    context.Tcs.SetResult(context.Files.Last());
+                    if (context.FileIndex == context.Files.Count)
+                    {
+                        (context as BarsFileAsyncContext)?.ParentContext.Tcs.SetResult(context.Files);
+                        (context as TicksFileAsyncContext)?.ParentContext.Tcs.SetResult(context.Files);
+                        return;
+                    }
+                }
+
+                var request = new FileRequest(0);
+                request.FileId = context.FileIds[context.FileIndex];
+                request.Chunk = ++context.ChunkIndex;
+                session.SendFileRequest(context, request);
+            }
+
+            public override void OnFileReject(ClientSession session, FileRequestClientContext FileRequestClientContext, QueryReject reject)
+            {
+                var barsContext = FileRequestClientContext as BarsFileAsyncContext;
+                if (barsContext != null)
+                {
+                    var exception = new Exception(reject.Message);
+                    barsContext.Tcs.SetException(exception);
+                    barsContext.ParentContext.Tcs.SetException(exception);
+                }
             }
 
             QuoteHistoryClient _client;
@@ -505,13 +645,76 @@ namespace TTQuoteHistoryClient
 
         #endregion
 
+        #region Quote History files private methods
+
+        private List<byte[]> QueryQuoteHistoryBarsFilesInternal(DateTime timestamp, string symbol, string pereodicity, PriceType priceType)
+        {
+            return ConvertToSync(QueryQuoteHistoryBarsFilesInternalAsync(timestamp, symbol, pereodicity, priceType), Timeout);
+        }
+
+        private Task<List<byte[]>> QueryQuoteHistoryBarsFilesInternalAsync(DateTime timestamp, string symbol, string pereodicity, PriceType priceType)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            // Create a new async context
+            var context = new QueryQuoteHistoryBarsFilesAsyncContext();
+
+            // Create a new QH cache request
+            var request = new QueryBarsFileRequest(0)
+            {
+                RequestId = Guid.NewGuid().ToString(),
+                Timestamp = timestamp,
+                Symbol = symbol,
+                Periodicity = pereodicity,
+                PriceType = (SoftFX.Net.QuoteHistory.PriceType)priceType
+            };
+
+            // Send request to the server
+            _session.SendBarsFileRequest(context, request);
+
+            // Return result task
+            return context.Tcs.Task;
+        }
+
+        private List<byte[]> QueryQuoteHistoryTicksFilesInternal(DateTime timestamp, string symbol, bool level2)
+        {
+            return ConvertToSync(QueryQuoteHistoryTicksFilesInternalAsync(timestamp, symbol, level2), Timeout);
+        }
+
+        private Task<List<byte[]>> QueryQuoteHistoryTicksFilesInternalAsync(DateTime timestamp, string symbol, bool level2)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            // Create a new async context
+            var context = new QueryQuoteHistoryTicksFilesAsyncContext();
+
+            // Create a new QH cache request
+            var request = new QueryTicksFileRequest(0)
+            {
+                RequestId = Guid.NewGuid().ToString(),
+                Timestamp = timestamp,
+                Symbol = symbol,
+                Level2 = level2
+            };
+
+            // Send request to the server
+            _session.SendTicksFileRequest(context, request);
+
+            // Return result task
+            return context.Tcs.Task;
+        }
+
+        #endregion
+
         #region Async helpers
 
         public static void ConvertToSync(Task task, TimeSpan timeout)
         {
             try
             {
-                if (!task.Wait(Timeout))
+                if (!task.Wait(timeout))
                     throw new TimeoutException("Method call timeout");
             }
             catch (AggregateException ex)
@@ -524,7 +727,7 @@ namespace TTQuoteHistoryClient
         {
             try
             {
-                if (!task.Wait(Timeout))
+                if (!task.Wait(timeout))
                     throw new TimeoutException("Method call timeout");
 
                 return task.Result;
