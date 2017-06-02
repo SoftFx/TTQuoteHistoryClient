@@ -20,6 +20,7 @@ namespace rTTQuoteHistory
         private static List<Bar> _barList;
         private static List<Tick> _tickList;
 
+
         public static int Connect(string name, string address, double port, string login, string password)
         {
             try
@@ -58,52 +59,41 @@ namespace rTTQuoteHistory
         public static int BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
-            try
+            var sign = Math.Sign(count);
+            if (count * sign <= 5000)
             {
-                var sign = Math.Sign(count);
-                if (count * sign <= 5000)
+                _barList =
+                    _client.QueryQuoteHistoryBars(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
+                            timestamp.Minute, timestamp.Second,
+                            timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity,
+                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+            }
+            else
+            {
+                _barList =
+                    _client.QueryQuoteHistoryBars(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
+                            timestamp.Minute, timestamp.Second,
+                            timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity,
+                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                if (_barList.Count > 0)
+                    timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
+                for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
                 {
-                    _barList =
+                    var buf =
                         _client.QueryQuoteHistoryBars(
                             new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
                                 timestamp.Minute, timestamp.Second,
-                                timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity,
+                                timestamp.Millisecond, DateTimeKind.Utc),
+                            (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity,
                             priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                    _barList.AddRange(buf);
+                    if (buf.Count > 0)
+                        timestamp = (sign < 0) ? buf[buf.Count - 1].Time : buf[0].Time;
                 }
-                else
-                {
-                    _barList =
-                        _client.QueryQuoteHistoryBars(
-                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
-                                timestamp.Minute, timestamp.Second,
-                                timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity,
-                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-                    if (_barList.Count > 0)
-                        timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
-                    for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
-                    {
-                        var buf =
-                            _client.QueryQuoteHistoryBars(
-                                new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
-                                    timestamp.Minute, timestamp.Second,
-                                    timestamp.Millisecond, DateTimeKind.Utc),
-                                (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity,
-                                priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-                        _barList.AddRange(buf);
-                        if (buf.Count > 0)
-                            timestamp = (sign < 0) ? buf[buf.Count - 1].Time : buf[0].Time;
-                    }
-                }
-                return 0;
             }
-            catch (TimeoutException ex)
-            {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                return -2;
-            }
+            return 0;
         }
 
         public static DateTime[] GetBarTime()
@@ -140,45 +130,34 @@ namespace rTTQuoteHistory
         #region Ticks
         public static int TickRequest(DateTime timestamp, double count, string symbol, bool level2)
         {
-            try
+            var sign = Math.Sign(count);
+            if (count * sign <= 1000)
             {
-                var sign = Math.Sign(count);
-                if (count * sign <= 1000)
+                _tickList =
+                    _client.QueryQuoteHistoryTicks(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, level2);
+            }
+            else
+            {
+                _tickList =
+                    _client.QueryQuoteHistoryTicks(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), 1000 * sign, symbol, level2);
+                if (_tickList.Count > 0)
+                    timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
+                for (int i = 1000 * sign; sign * i < sign * count; i += (1000 * sign))
                 {
-                    _tickList =
-                        _client.QueryQuoteHistoryTicks(
-                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                                timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, level2);
+                    var buf = _client.QueryQuoteHistoryTicks(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc),
+                        (sign * (count - i) > 1000) ? sign * 1000 : sign * (int)(count - i), symbol, level2);
+                    _tickList.AddRange(buf);
+                    if (buf.Count > 0)
+                        timestamp = (sign < 0) ? buf[buf.Count - 1].Id.Time : buf[0].Id.Time;
                 }
-                else
-                {
-                    _tickList =
-                        _client.QueryQuoteHistoryTicks(
-                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                                timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), 1000 * sign, symbol, level2);
-                    if (_tickList.Count > 0)
-                        timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
-                    for (int i = 1000 * sign; sign * i < sign * count; i += (1000 * sign))
-                    {
-                        var buf = _client.QueryQuoteHistoryTicks(
-                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                                timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc),
-                            (sign * (count - i) > 1000) ? sign * 1000 : sign * (int)(count - i), symbol, level2);
-                        _tickList.AddRange(buf);
-                        if (buf.Count > 0)
-                            timestamp = (sign < 0) ? buf[buf.Count - 1].Id.Time : buf[0].Id.Time;
-                    }
-                }
-                return 0;
             }
-            catch (TimeoutException ex)
-            {
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                return -2;
-            }
+            return 0;
         }
 
         public static DateTime[] GetTickDate()

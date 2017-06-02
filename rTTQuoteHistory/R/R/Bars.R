@@ -6,8 +6,6 @@
 #' @export
 tthBarRequest <- function(symbol = "", endTime= "", count= "", periodicity="M1",priceType = "Bid") {
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'BarRequest', endTime, count, symbol, periodicity, priceType)
-  if(hResult == -1){print("Bars didn't get with TimeoutEcxeption")}
-  if(hResult == -2){print("History not found or client disconnected")}
   if(hResult == 0){tGetBarDataFrame()}
 }
 #' Get Bar table

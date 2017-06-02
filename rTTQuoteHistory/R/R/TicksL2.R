@@ -6,8 +6,6 @@
 #' @export
 tthTickL2Request <- function(symbol = "", endTime= "", count= "") {
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', endTime,count,symbol,TRUE)
-  if(hResult == -1){print("Ticks didn't get with TimeoutEcxeption")}
-  if(hResult == -2){print("History not found or client disconnected")}
   if(hResult == 0){tGetTickL2DataFrame()}
 }
 #' Get tick table
