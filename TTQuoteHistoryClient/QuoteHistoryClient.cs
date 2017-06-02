@@ -129,7 +129,7 @@ namespace TTQuoteHistoryClient
 
             public override void OnDisconnect(ClientSession clientSession, ClientContext[] contexts, string text)
             {
-                Exception exception = new Exception("Client is disconnected");
+                Exception exception = new Exception("Client disconnected : " + text);
                 foreach (ClientContext context in contexts)
                     ((IAsyncContext) context).SetException(exception);
 
