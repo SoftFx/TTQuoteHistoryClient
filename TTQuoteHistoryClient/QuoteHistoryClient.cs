@@ -148,17 +148,23 @@ namespace TTQuoteHistoryClient
             options.ConnectPort = port;
             options.ConnectionType = ConnectionType.Secure;
             options.ServerCertificateName = "TickTraderManagerService";
+#if DEBUG
+            options.Log.Events = false;
+            options.Log.States = false;
+            options.Log.Messages = true;
+#else
             options.Log.Events = false;
             options.Log.States = false;
             options.Log.Messages = false;
+#endif
             _session = new ClientSession(name, options);
             _sessionListener = new ClientSessionListener(this);
             _session.Listener = _sessionListener;
         }
 
-        #endregion
+#endregion
 
-        #region Session listener
+#region Session listener
 
         private class ClientSessionListener : SoftFX.Net.QuoteHistory.ClientSessionListener
         {
@@ -419,9 +425,9 @@ namespace TTQuoteHistoryClient
             QuoteHistoryClient _client;
         }
 
-        #endregion
+#endregion
 
-        #region Connection
+#region Connection
 
         public delegate void ConnectedDelegate(QuoteHistoryClient client);
         public delegate void ConnectErrorDelegate(QuoteHistoryClient client);
@@ -467,9 +473,9 @@ namespace TTQuoteHistoryClient
             _session.Listener = null;
         }
 
-        #endregion
+#endregion
 
-        #region Login / logout
+#region Login / logout
 
         public void Login(string username, string password, string deviceId, string appSessionId)
         {
@@ -526,9 +532,9 @@ namespace TTQuoteHistoryClient
             return context.Tcs.Task;
         }
 
-        #endregion
+#endregion
 
-        #region Quote History cache
+#region Quote History cache
 
         public List<string> GetSupportedSymbols()
         {
@@ -643,9 +649,9 @@ namespace TTQuoteHistoryClient
             return context.Tcs.Task;
         }
 
-        #endregion
+#endregion
 
-        #region Quote History files private methods
+#region Quote History files private methods
 
         private List<byte[]> QueryQuoteHistoryBarsFilesInternal(DateTime timestamp, string symbol, string pereodicity, PriceType priceType)
         {
@@ -706,9 +712,9 @@ namespace TTQuoteHistoryClient
             return context.Tcs.Task;
         }
 
-        #endregion
+#endregion
 
-        #region Async helpers
+#region Async helpers
 
         public static void ConvertToSync(Task task, TimeSpan timeout)
         {
@@ -740,9 +746,9 @@ namespace TTQuoteHistoryClient
             }
         }
 
-        #endregion
+#endregion
 
-        #region IDisposable
+#region IDisposable
 
         private bool _disposed;
 
@@ -766,6 +772,6 @@ namespace TTQuoteHistoryClient
             }
         }
 
-        #endregion
+#endregion
     }
 }
