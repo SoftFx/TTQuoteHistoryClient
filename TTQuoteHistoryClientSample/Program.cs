@@ -11,87 +11,94 @@ namespace TTQuoteHistoryClientSample
     {
         static void Main(string[] args)
         {
-            bool help = false;
-
-            string address = "localhost";
-            string login = "5";
-            string password = "123qwe!";
-            int port = 5020;
-
-            DateTime timestamp = DateTime.UtcNow;
-            int count = 100;
-            int threads = 1;
-            string symbol = "EURUSD";
-            string periodicity = "M1";
-            PriceType priceType = PriceType.Bid;
-            bool bars = false;
-            bool ticks = false;
-            bool level2 = false;
-            bool verbose = false;
-
-            var options = new OptionSet()
-            {
-                { "a|address=", v => address = v },
-                { "l|login=", v => login = v },
-                { "w|password=", v => password = v },
-                { "p|port=", v => port = int.Parse(v) },
-                { "h|?|help",   v => help = v != null },
-                { "t|timestamp=", v => timestamp = DateTime.Parse(v) },
-                { "c|count=", v => count = int.Parse(v) },
-                { "s|symobl=", v => symbol = v },
-                { "d|periodicity=", v => periodicity = v },
-                { "z|threads=", v => threads = int.Parse(v) },
-                { "v|verbose=", v => verbose = bool.Parse(v) },
-                { "r|request=", v =>
-                    {
-                        switch (v.ToLowerInvariant())
-                        {
-                            case "bids":
-                                priceType = PriceType.Bid;
-                                bars = true;
-                                break;
-                            case "asks":
-                                priceType = PriceType.Ask;
-                                bars = true;
-                                break;
-                            case "ticks":
-                                ticks = true;
-                                break;
-                            case "level2":
-                                level2 = true;
-                                break;
-                            default:
-                                throw new Exception("Unknown request type: " + v);
-                        }
-                    }
-                },
-            };
-
             try
             {
-                options.Parse(args);
+                bool help = false;
+
+                string address = "localhost";
+                string login = "5";
+                string password = "123qwe!";
+                int port = 5020;
+
+                DateTime timestamp = DateTime.UtcNow;
+                int count = 100;
+                int threads = 1;
+                string symbol = "EURUSD";
+                string periodicity = "M1";
+                PriceType priceType = PriceType.Bid;
+                bool bars = false;
+                bool ticks = false;
+                bool level2 = false;
+                bool verbose = false;
+
+                var options = new OptionSet()
+                {
+                    { "a|address=", v => address = v },
+                    { "l|login=", v => login = v },
+                    { "w|password=", v => password = v },
+                    { "p|port=", v => port = int.Parse(v) },
+                    { "h|?|help",   v => help = v != null },
+                    { "t|timestamp=", v => timestamp = DateTime.Parse(v) },
+                    { "c|count=", v => count = int.Parse(v) },
+                    { "s|symobl=", v => symbol = v },
+                    { "d|periodicity=", v => periodicity = v },
+                    { "z|threads=", v => threads = int.Parse(v) },
+                    { "v|verbose=", v => verbose = bool.Parse(v) },
+                    { "r|request=", v =>
+                        {
+                            switch (v.ToLowerInvariant())
+                            {
+                                case "bids":
+                                    priceType = PriceType.Bid;
+                                    bars = true;
+                                    break;
+                                case "asks":
+                                    priceType = PriceType.Ask;
+                                    bars = true;
+                                    break;
+                                case "ticks":
+                                    ticks = true;
+                                    break;
+                                case "level2":
+                                    level2 = true;
+                                    break;
+                                default:
+                                    throw new Exception("Unknown request type: " + v);
+                            }
+                        }
+                    },
+                };
+
+                try
+                {
+                    options.Parse(args);
+                }
+                catch (OptionException e)
+                {
+                    Console.Write("TTQuoteHistoryClientSample: ");
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Try `TTQuoteHistoryClientSample --help' for more information.");
+                    return;
+                }
+
+                if (help)
+                {
+                    Console.WriteLine("TTQuoteHistoryClientSample usage:");
+                    options.WriteOptionDescriptions(Console.Out);
+                    return;
+                }
+
+                List<Task> tasks = new List<Task>();
+                for (int i = 0; i < threads; i++)
+                    tasks.Add(Task.Factory.StartNew(() => WorkingThread(address, login, password, port, timestamp, count, symbol, periodicity, priceType, bars, ticks, level2, verbose), TaskCreationOptions.LongRunning));
+
+                foreach (var task in tasks)
+                    task.Wait();
             }
-            catch (OptionException e)
+            catch (Exception ex)
             {
-                Console.Write("TTQuoteHistoryClientSample: ");
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Try `TTQuoteHistoryClientSample --help' for more information.");
-                return;
+                Console.WriteLine("Error : " + ex.Message);
             }
-
-            if (help)
-            {
-                Console.WriteLine("TTQuoteHistoryClientSample usage:");
-                options.WriteOptionDescriptions(Console.Out);
-                return;
-            }
-
-            List<Task> tasks = new List<Task>();
-            for (int i = 0; i < threads; i++)
-                tasks.Add(Task.Factory.StartNew(() => WorkingThread(address, login, password, port, timestamp, count, symbol, periodicity, priceType, bars, ticks, level2, verbose), TaskCreationOptions.LongRunning));
-
-            foreach (var task in tasks)
-                task.Wait();
         }
 
         static void WorkingThread(string address, string login, string password, int port, DateTime timestamp, int count, string symbol, string periodicity, PriceType priceType, bool bars, bool ticks, bool level2, bool verbose)
@@ -122,7 +129,7 @@ namespace TTQuoteHistoryClientSample
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Error : " + ex.Message);
             }
         }
 

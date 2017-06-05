@@ -9,81 +9,81 @@ namespace TTQuoteHistoryClientStressTest
     {
         static void Main(string[] args)
         {
-            bool help = false;
-
-            string address = "localhost";
-            string login = "5";
-            string password = "123qwe!";
-            int port = 5020;
-
-            DateTime timestamp = DateTime.UtcNow;
-            int count = 100;
-            string symbol = "EURUSD";
-            string periodicity = "M1";
-            PriceType priceType = PriceType.Bid;
-            bool bars = false;
-            bool ticks = false;
-            bool level2 = false;
-            int threadCount = 10;
-
-            var options = new OptionSet()
+            try
             {
-                { "address=", v => address = v },
-                { "login=", v => login = v },
-                { "password=", v => password = v },
-                { "port=", v => port = int.Parse(v) },
-                { "?|help",   v => help = v != null },
-                { "timestamp=", v => timestamp = DateTime.Parse(v) },
-                { "count=", v => count = int.Parse(v) },
-                { "symobl=", v => symbol = v },
-                { "periodicity=", v => periodicity = v },
-                { "threads=", v => threadCount = int.Parse(v) },
-                { "request=", v =>
-                    {
-                        switch (v.ToLowerInvariant())
+                bool help = false;
+
+                string address = "localhost";
+                string login = "5";
+                string password = "123qwe!";
+                int port = 5020;
+
+                DateTime timestamp = DateTime.UtcNow;
+                int count = 100;
+                string symbol = "EURUSD";
+                string periodicity = "M1";
+                PriceType priceType = PriceType.Bid;
+                bool bars = false;
+                bool ticks = false;
+                bool level2 = false;
+                int threadCount = 10;
+
+                var options = new OptionSet()
+                {
+                    { "address=", v => address = v },
+                    { "login=", v => login = v },
+                    { "password=", v => password = v },
+                    { "port=", v => port = int.Parse(v) },
+                    { "?|help",   v => help = v != null },
+                    { "timestamp=", v => timestamp = DateTime.Parse(v) },
+                    { "count=", v => count = int.Parse(v) },
+                    { "symobl=", v => symbol = v },
+                    { "periodicity=", v => periodicity = v },
+                    { "threads=", v => threadCount = int.Parse(v) },
+                    { "request=", v =>
                         {
-                            case "bids":
-                                priceType = PriceType.Bid;
-                                bars = true;
-                                break;
-                            case "asks":
-                                priceType = PriceType.Ask;
-                                bars = true;
-                                break;
-                            case "ticks":
-                                ticks = true;
-                                break;
-                            case "level2":
-                                level2 = true;
-                                break;
-                            default:
-                                throw new Exception("Unknown request type: " + v);
+                            switch (v.ToLowerInvariant())
+                            {
+                                case "bids":
+                                    priceType = PriceType.Bid;
+                                    bars = true;
+                                    break;
+                                case "asks":
+                                    priceType = PriceType.Ask;
+                                    bars = true;
+                                    break;
+                                case "ticks":
+                                    ticks = true;
+                                    break;
+                                case "level2":
+                                    level2 = true;
+                                    break;
+                                default:
+                                    throw new Exception("Unknown request type: " + v);
+                            }
                         }
-                    }
-                },
-            };
+                    },
+                };
 
-            try
-            {
-                options.Parse(args);
-            }
-            catch (OptionException e)
-            {
-                Console.Write("TTQuoteHistoryClientStressTest: ");
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Try `TTQuoteHistoryClientStressTest --help' for more information.");
-                return;
-            }
+                try
+                {
+                    options.Parse(args);
+                }
+                catch (OptionException e)
+                {
+                    Console.Write("TTQuoteHistoryClientStressTest: ");
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Try `TTQuoteHistoryClientStressTest --help' for more information.");
+                    return;
+                }
 
-            if (help)
-            {
-                Console.WriteLine("TTQuoteHistoryClientStressTest usage:");
-                options.WriteOptionDescriptions(Console.Out);
-                return;
-            }
+                if (help)
+                {
+                    Console.WriteLine("TTQuoteHistoryClientStressTest usage:");
+                    options.WriteOptionDescriptions(Console.Out);
+                    return;
+                }
 
-            try
-            {
                 // Create an instance of Quote History client
                 using (var client = new QuoteHistoryClient("QuoteHistoryCache", port))
                 {                  
@@ -131,7 +131,7 @@ namespace TTQuoteHistoryClientStressTest
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Error : " + ex.Message);
             }
         }
 
@@ -177,7 +177,7 @@ namespace TTQuoteHistoryClientStressTest
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine(exception.Message);
+                    Console.WriteLine("Error : " + exception.Message);
                 }
             }
         }
