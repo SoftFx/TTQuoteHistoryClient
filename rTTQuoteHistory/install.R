@@ -1,3 +1,4 @@
+install.packages("devtools")
 install.packages("install.load")
 library(install.load)
 install_load("data.table", "stringi")
