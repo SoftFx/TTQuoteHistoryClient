@@ -139,13 +139,16 @@ namespace TTQuoteHistoryClient
         {
         }
 
-        public QuoteHistoryClient(string name, int port) : this(name, port, new ClientSessionOptions(port) { ConnectMaxCount = 1, SendBufferSize = 1048576 })
+        public QuoteHistoryClient(string name, int port) : this(name, port, true)
         {
         }
 
-        public QuoteHistoryClient(string name, int port, ClientSessionOptions options)
+        public QuoteHistoryClient(string name, int port, bool automaticReconnect) : this(name, new ClientSessionOptions(port) { ConnectMaxCount = 1, ReconnectMaxCount = automaticReconnect ? -1 : 0, SendBufferSize = 1048576 })
         {
-            options.ConnectPort = port;
+        }
+
+        private QuoteHistoryClient(string name, ClientSessionOptions options)
+        {
             options.ConnectionType = ConnectionType.Secure;
             options.ServerCertificateName = "TickTraderManagerService";
 #if DEBUG
@@ -187,7 +190,14 @@ namespace TTQuoteHistoryClient
 
             public override void OnDisconnect(ClientSession clientSession, ClientContext[] contexts, string text)
             {
-                Exception exception = new Exception("Client disconnected : " + text);
+                string message = "Client disconnected";
+                if (text != null)
+                {
+                    message += " : ";
+                    message += text;
+                }
+                Exception exception = new Exception(message);
+
                 foreach (ClientContext context in contexts)
                     ((IAsyncContext) context).SetException(exception);
 
