@@ -12,7 +12,7 @@ namespace TTQuoteHistoryClient
 {
     public class QuoteHistoryClient : IDisposable
     {
-        public static TimeSpan Timeout = TimeSpan.FromMilliseconds(60000);
+        public static TimeSpan Timeout = TimeSpan.FromMilliseconds(30000);
 
         private readonly ClientSession _session;
         private readonly ClientSessionListener _sessionListener;
@@ -149,7 +149,7 @@ namespace TTQuoteHistoryClient
             options.ConnectionType = ConnectionType.Secure;
             options.ServerCertificateName = "TickTraderManagerService";
 #if DEBUG
-            options.Log.Events = false;
+            options.Log.Events = true;
             options.Log.States = false;
             options.Log.Messages = true;
 #else
@@ -443,7 +443,7 @@ namespace TTQuoteHistoryClient
         {
             _session.Connect(address);
 
-            if (!_session.WaitConnect(15000))
+            if (!_session.WaitConnect((int) Timeout.TotalMilliseconds))
             {
                 Disconnect();
                 throw new TimeoutException("Connect timeout");
