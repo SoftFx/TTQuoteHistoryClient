@@ -106,7 +106,7 @@ namespace TTQuoteHistoryClientSample
             try
             {
                 // Create an instance of Quote History client
-                using (var client = new QuoteHistoryClient("QuoteHistoryCache", port))
+                using (var client = new QuoteHistoryClient("QuoteHistoryCache", port, false))
                 {
                     // Connect to the server
                     client.Connect(address);
