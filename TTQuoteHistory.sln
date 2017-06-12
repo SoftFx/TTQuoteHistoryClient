@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTQuoteHistoryCacheSample",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTQuoteHistoryClientStressTest", "TTQuoteHistoryClientStressTest\TTQuoteHistoryClientStressTest.csproj", "{DCCF2F6B-32FE-4E89-8C66-00FDCC1D6FAD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTQuoteHistoryRangeSample", "TTQuoteHistoryRangeSample\TTQuoteHistoryRangeSample.csproj", "{64A88CC1-CC5A-45FE-8A89-88A72E6A12B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{DCCF2F6B-32FE-4E89-8C66-00FDCC1D6FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCCF2F6B-32FE-4E89-8C66-00FDCC1D6FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCCF2F6B-32FE-4E89-8C66-00FDCC1D6FAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64A88CC1-CC5A-45FE-8A89-88A72E6A12B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64A88CC1-CC5A-45FE-8A89-88A72E6A12B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64A88CC1-CC5A-45FE-8A89-88A72E6A12B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64A88CC1-CC5A-45FE-8A89-88A72E6A12B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
