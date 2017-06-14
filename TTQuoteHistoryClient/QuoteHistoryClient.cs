@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using SoftFX.Net.Core;
 using SoftFX.Net.QuoteHistory;
+using TickTrader.BusinessObjects;
+using TickTrader.Common.Business;
+using TickTrader.Common.Time;
+using TickTrader.Server.QuoteHistory.Serialization;
 using ClientSession = SoftFX.Net.QuoteHistory.ClientSession;
 using ClientSessionOptions = SoftFX.Net.QuoteHistory.ClientSessionOptions;
 
@@ -657,6 +662,146 @@ namespace TTQuoteHistoryClient
 
             // Return result task
             return context.Tcs.Task;
+        }
+
+        #endregion
+
+        #region Quote History range
+
+        public IEnumerable<Bar> QueryQuoteHistoryBarsRange(DateTime from, DateTime to, string symbol, string pereodicity, PriceType priceType)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            if (to < from)
+            {
+                DateTime temp = from;
+                from = to;
+                to = temp;
+            }
+
+            var periodicity = Periodicity.Parse(pereodicity);
+            var timestamp = periodicity.GetPeriodStartTime(from);
+
+            var filename = periodicity + " " + priceType.ToString("g").ToLowerInvariant();
+            var serializer = new ItemsZipSerializer<HistoryBar, List<HistoryBar>>(BarFormatter.Default, filename);
+
+            do
+            {
+                List<byte[]> content = QueryQuoteHistoryBarsFilesInternal(timestamp, symbol, pereodicity, priceType);
+                foreach (var file in content)
+                {
+                    var historyBars = serializer.Deserialize(file);
+                    foreach (var historyBar in historyBars)
+                    {
+                        if (historyBar.Time < from)
+                            continue;
+                        if (historyBar.Time > to)
+                            break;
+                        yield return new Bar
+                        {
+                            Time = historyBar.Time,
+                            Open = historyBar.Open,
+                            High = historyBar.Hi,
+                            Low = historyBar.Low,
+                            Close = historyBar.Close,
+                            Volume = (decimal)historyBar.Volume
+                        };
+                    }
+                }
+
+                if (periodicity.Interval == TimeInterval.Second)
+                {
+                    if (periodicity.IntervalsCount < 10)
+                        timestamp = timestamp.AddHours(1);
+                    else
+                        timestamp = timestamp.AddDays(1);
+                }
+                else if (periodicity.Interval == TimeInterval.Minute)
+                {
+                    if (periodicity.IntervalsCount < 5)
+                        timestamp = timestamp.AddDays(1);
+                    else
+                        timestamp = timestamp.AddMonths(1);
+                }
+                else
+                {
+                    timestamp = timestamp.AddMonths(1);
+                }
+
+            } while (timestamp < to);
+        }
+
+        public IEnumerable<Tick> QueryQuoteHistoryTicksRange(DateTime from, DateTime to, string symbol, bool level2)
+        {
+            if (!IsConnected)
+                throw new Exception("Client is not connected!");
+
+            if (to < from)
+            {
+                DateTime temp = from;
+                from = to;
+                to = temp;
+            }
+
+            var timestamp = from;
+
+            var filename = level2 ? "ticks level2" : "ticks";
+            var formatter = level2 ? (IFormatter<TickValue>)FeedTickLevel2Formatter.Instance : FeedTickFormatter.Instance;
+            var serializer = new ItemsZipSerializer<TickValue, TickValueList>(formatter, filename);
+
+            do
+            {
+                List<byte[]> content = QueryQuoteHistoryTicksFilesInternal(timestamp, symbol, level2);
+                foreach (var file in content)
+                {
+                    var historyTicks = serializer.Deserialize(file);
+                    foreach (var historyTick in historyTicks)
+                    {
+                        if (historyTick.Time < from)
+                            continue;
+                        if (historyTick.Time > to)
+                            break;
+
+                        var tick = new Tick()
+                        {
+                            Id = new TickId
+                            {
+                                Time = historyTick.Id.Time,
+                                Index = historyTick.Id.Index
+                            },
+                            Level2 = new Level2Collection()
+                        };
+
+                        foreach (var level2record in historyTick.Level2)
+                        {
+                            if (level2record.Type == FxPriceType.Bid)
+                            {
+                                var bid = new Level2Value
+                                {
+                                    Price = (decimal)level2record.Price,
+                                    Volume = (decimal)level2record.Volume
+                                };
+                                tick.Level2.Bids.Add(bid);
+                            }
+                            if (level2record.Type == FxPriceType.Ask)
+                            {
+                                var ask = new Level2Value
+                                {
+                                    Price = (decimal)level2record.Price,
+                                    Volume = (decimal)level2record.Volume
+                                };
+                                tick.Level2.Asks.Add(ask);
+                            }
+                        }
+
+                        yield return tick;
+                    }
+                }
+
+                timestamp = timestamp.AddHours(1);
+
+            } while (timestamp < to);
         }
 
         #endregion

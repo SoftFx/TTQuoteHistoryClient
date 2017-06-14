@@ -49,6 +49,16 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="TickTrader.BusinessObjects">
+      <HintPath>lib\TickTrader.BusinessObjects.dll</HintPath>
+    </Reference>
+    <Reference Include="TickTrader.Common, Version=1.27.3.0, Culture=neutral, PublicKeyToken=f93e83ea42ea164d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\TickTrader.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="TickTrader.Server.QuoteHistory">
+      <HintPath>lib\TickTrader.Server.QuoteHistory.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain.cs" />

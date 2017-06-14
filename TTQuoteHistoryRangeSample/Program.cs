@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using NDesk.Options;
 using TTQuoteHistoryClient;
 
@@ -128,82 +126,38 @@ namespace TTQuoteHistoryRangeSample
 
         static void RequestTicksFiles(QuoteHistoryClient client, DateTime from, DateTime to, string symbol, bool level2, bool verbose)
         {
-            /*
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            bool backward = count < 0;
-            count = Math.Abs(count);
-
-            List<Tick> result;
-            for (int i = 0; i < count / 1000; i++)
+            int count = 0;
+            foreach (var tick in client.QueryQuoteHistoryTicksRange(from, to, symbol, level2))
             {
-                // Request for the bars history
-                result = client.QueryQuoteHistoryTicks(timestamp, backward ? -1000 : 1000, symbol, level2);
-                if (result.Count > 0)
-                    timestamp = backward ? result[result.Count - 1].Id.Time : result[0].Id.Time;
+                count++;
                 if (verbose)
-                {
-                    foreach (var tick in result)
-                        Console.WriteLine(tick);
-                }
-            }
-
-            int remain = count % 1000;
-            if (remain > 0)
-            {
-                result = client.QueryQuoteHistoryTicks(timestamp, backward ? -remain : remain, symbol, level2);
-                if (verbose)
-                {
-                    foreach (var tick in result)
-                        Console.WriteLine(tick);
-                }
+                    Console.WriteLine(tick);
             }
 
             long elapsed = sw.ElapsedMilliseconds;
             Console.WriteLine($"Elapsed = {elapsed}ms");
             Console.WriteLine($"Throughput = {((double)count / (double)elapsed) * 1000.0:0.#####} ticks per second");
-            */
         }
 
         static void RequestBarsFiles(QuoteHistoryClient client, DateTime from, DateTime to, string symbol, string periodicity, PriceType priceType, bool verbose)
         {
-            /*
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            bool backward = count < 0;
-            count = Math.Abs(count);
-
-            List<Bar> result;
-            for (int i = 0; i < count/5000; i++)
+            int count = 0;
+            foreach (var bar in client.QueryQuoteHistoryBarsRange(from, to, symbol, periodicity, priceType))
             {
-                // Request for the bars history
-                result = client.QueryQuoteHistoryBars(timestamp, backward ? -5000 : 5000, symbol, periodicity, priceType);
-                if (result.Count > 0)
-                    timestamp = backward ? result[result.Count - 1].Time : result[0].Time;
+                count++;
                 if (verbose)
-                {
-                    foreach (var bar in result)
-                        Console.WriteLine(bar);
-                }
-            }
-
-            int remain = count%5000;
-            if (remain > 0)
-            {
-                result = client.QueryQuoteHistoryBars(timestamp, backward ? -remain : remain, symbol, periodicity, priceType);
-                if (verbose)
-                {
-                    foreach (var bar in result)
-                        Console.WriteLine(bar);
-                }
+                    Console.WriteLine(bar);
             }
 
             long elapsed = sw.ElapsedMilliseconds;
             Console.WriteLine($"Elapsed = {elapsed}ms");
             Console.WriteLine($"Throughput = {((double)count/(double)elapsed)*1000.0:0.#####} bars per second");
-            */
         }
     }
 }
