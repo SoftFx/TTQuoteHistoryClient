@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
@@ -684,14 +685,20 @@ namespace TTQuoteHistoryClient
             var timestamp = periodicity.GetPeriodStartTime(from);
 
             var filename = periodicity + " " + priceType.ToString("g").ToLowerInvariant();
-            var serializer = new ItemsZipSerializer<HistoryBar, List<HistoryBar>>(BarFormatter.Default, filename);
+            var zipSerializer = new ItemsZipSerializer<HistoryBar, List<HistoryBar>>(BarFormatter.Default, filename);
+            var txtSerializer = new ItemsTextSerializer<HistoryBar, List<HistoryBar>>(BarFormatter.Default, filename);
 
             do
             {
                 List<byte[]> content = QueryQuoteHistoryBarsFilesInternal(timestamp, symbol, pereodicity, priceType);
                 foreach (var file in content)
                 {
-                    var historyBars = serializer.Deserialize(file);
+                    List<HistoryBar> historyBars;
+                    if ((file.Length >= 4) && (file[0] == 0x50) && (file[1] == 0x4b) && (file[2] == 0x03) && (file[3] == 0x04))
+                        historyBars = zipSerializer.Deserialize(file);
+                    else
+                        historyBars = txtSerializer.Deserialize(file);
+
                     foreach (var historyBar in historyBars)
                     {
                         if (historyBar.Time < from)
@@ -748,14 +755,20 @@ namespace TTQuoteHistoryClient
 
             var filename = level2 ? "ticks level2" : "ticks";
             var formatter = level2 ? (IFormatter<TickValue>)FeedTickLevel2Formatter.Instance : FeedTickFormatter.Instance;
-            var serializer = new ItemsZipSerializer<TickValue, TickValueList>(formatter, filename);
+            var zipSerializer = new ItemsZipSerializer<TickValue, TickValueList>(formatter, filename);
+            var txtSerializer = new ItemsTextSerializer<TickValue, TickValueList>(formatter, filename);
 
             do
             {
                 List<byte[]> content = QueryQuoteHistoryTicksFilesInternal(timestamp, symbol, level2);
                 foreach (var file in content)
                 {
-                    var historyTicks = serializer.Deserialize(file);
+                    TickValueList historyTicks;
+                    if ((file.Length >= 4) && (file[0] == 0x50) && (file[1] == 0x4b) && (file[2] == 0x03) && (file[3] == 0x04))
+                        historyTicks = zipSerializer.Deserialize(file);
+                    else
+                        historyTicks = txtSerializer.Deserialize(file);
+
                     foreach (var historyTick in historyTicks)
                     {
                         if (historyTick.Time < from)
