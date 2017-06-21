@@ -11,7 +11,7 @@ namespace rTTQuoteHistory
 {
     public class TTQuoteHistoryHost
     {
-        private const string DefaultAddress = "tpdemo.fxopen.com";
+        private const string DefaultAddress = "ttdemo.fxopen.com";
         private const string DefaultLogin = "59932";
         private const string DefaultPassword = "8mEx7zZ2";
         private const string DefaultName = "client";
@@ -44,7 +44,8 @@ namespace rTTQuoteHistory
         {
             try
             {
-                _client.Disconnect();
+                _client.Logout("");
+                //_client.Disconnect();
                 return 0;
             }
             catch (Exception)
