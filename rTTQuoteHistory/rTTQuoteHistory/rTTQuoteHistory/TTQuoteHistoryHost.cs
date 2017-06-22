@@ -45,12 +45,11 @@ namespace rTTQuoteHistory
             try
             {
                 _client.Logout("");
-                //_client.Disconnect();
+                _client.Disconnect();
                 return 0;
             }
             catch (Exception)
             {
-
                 return -1;
             }
 
