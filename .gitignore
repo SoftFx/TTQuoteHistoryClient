@@ -257,10 +257,8 @@ _Pvt_Extensions
 .Rproj*
 *.Rout
 *.log
-man/*
 Storage/*
 *.Rd
-man
 *.userprefs
 examples/*.html
 examples/rsconnect/documents
