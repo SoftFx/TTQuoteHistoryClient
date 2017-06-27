@@ -17,6 +17,7 @@ tGetTickL2DataFrame<-function()
   PriceBid = tGetTickL2PriceBid()
   PriceAsk = tGetTickL2PriceAsk()
   Level = tGetTickL2Level()
+  #tthClear()
   data.table(DateTime,VolumeBid,VolumeAsk,PriceBid,PriceAsk,Level)
 }
 #' Get tick field

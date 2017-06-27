@@ -17,6 +17,7 @@ tGetBarDataFrame<-function()
   Low = tGetBarLow()
   Close = tGetBarClose()
   Volume = tGetBarVolume()
+  #tthClear()
   data.table(DateTime,Open,High,Low,Close,Volume)
 }
 #' Get Bar field

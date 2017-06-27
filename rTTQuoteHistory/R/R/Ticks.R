@@ -14,6 +14,7 @@ tGetTickDataFrame<-function()
   DateTime = tGetTickDateTime()
   Bid = tGetTickBid()
   Ask = tGetTickAsk()
+  #tthClear()
   data.table(DateTime,Bid,Ask)
 }
 #' Get tick field

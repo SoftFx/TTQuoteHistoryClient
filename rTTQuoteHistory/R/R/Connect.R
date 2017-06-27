@@ -40,3 +40,8 @@ tthDisconnect <- function() {
   if(hResult == 0){print("Client disconnected")}
   if(hResult == -1){print("Client can't disconnect")}
 }
+#' Clear memory
+#'
+tthClear<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'Clear')
+}

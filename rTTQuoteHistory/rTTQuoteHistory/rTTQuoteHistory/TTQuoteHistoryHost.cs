@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using TickTrader.BusinessObjects.Requests;
 
 namespace rTTQuoteHistory
 {
@@ -239,6 +240,20 @@ namespace rTTQuoteHistory
         }
 
         #endregion
+
+        public static int Clear()
+        {
+            try
+            {
+                _tickList = null;
+                _barList = null;
+                return 0;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
 
         static void Main(string[] args)
         {
