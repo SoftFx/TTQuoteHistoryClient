@@ -256,7 +256,15 @@ namespace rTTQuoteHistory
 
         #endregion
 
+        public static string[] GetSupportesSymbols()
+        {
+            return _client.GetSupportedSymbols().ToArray();
+        }
 
+        public static string[] GetSupportedPeriodicities()
+        {
+            return _client.GetSupportedPeriodicities().ToArray();
+        }
 
         public static int Clear()
         {
@@ -274,7 +282,7 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-
+            
         }
     }
 }
