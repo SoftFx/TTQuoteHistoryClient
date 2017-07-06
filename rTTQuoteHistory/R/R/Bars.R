@@ -1,11 +1,25 @@
 #' Gets the bars as requested
 #'
 #' @param symbol Symbol looked
-#' @param startTime Start of the time intervals
-#' @param count Count of ticks
+#' @param timestamp timestamp
+#' @param count Count of bars
+#' @param periodicity periodicity
+#' @param priceType priceType
 #' @export
-tthBarRequest <- function(symbol = "", endTime= "", count= "", periodicity="M1",priceType = "Bid") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'BarRequest', endTime, count, symbol, periodicity, priceType)
+tthBarRequest <- function(symbol = "", timestamp= "", count= "", periodicity="M1",priceType = "Bid") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'BarRequest', timestamp, count, symbol, periodicity, priceType)
+  if(hResult == 0){tGetBarDataFrame()}
+}
+#' Gets the bars as requested
+#'
+#' @param symbol Symbol looked
+#' @param startTime Start of the time intervals
+#' @param endTime Count of bars
+#' @param periodicity periodicity
+#' @param priceType priceType
+#' @export
+tthFileBarRequest <- function(symbol = "", startTime= "", endTime= "", periodicity="M1",priceType = "Bid") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileBarRequest', startTime, endTime, symbol, periodicity, priceType)
   if(hResult == 0){tGetBarDataFrame()}
 }
 #' Get Bar table
@@ -17,7 +31,7 @@ tGetBarDataFrame<-function()
   Low = tGetBarLow()
   Close = tGetBarClose()
   Volume = tGetBarVolume()
-  #tthClear()
+  tthClear()
   data.table(DateTime,Open,High,Low,Close,Volume)
 }
 #' Get Bar field

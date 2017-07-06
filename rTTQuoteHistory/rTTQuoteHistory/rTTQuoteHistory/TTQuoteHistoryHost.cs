@@ -57,6 +57,13 @@ namespace rTTQuoteHistory
         }
 
         #region Bars
+        public static int FileBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
+        {
+            _barList = new List<Bar>();
+            _barList.AddRange(_client.QueryQuoteHistoryBarsRange(from, to, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
+            return 0;
+        }
+
         public static int BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
@@ -129,6 +136,14 @@ namespace rTTQuoteHistory
         #endregion
 
         #region Ticks
+
+        public static int FileTickRequest(DateTime from, DateTime to, string symbol, bool level2)
+        {
+            _tickList = new List<Tick>();
+            _tickList.AddRange(_client.QueryQuoteHistoryTicksRange(from,to,symbol,level2));
+            return 0;
+        }
+
         public static int TickRequest(DateTime timestamp, double count, string symbol, bool level2)
         {
             var sign = Math.Sign(count);
@@ -241,6 +256,8 @@ namespace rTTQuoteHistory
 
         #endregion
 
+
+
         public static int Clear()
         {
             try
@@ -257,61 +274,7 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-            bool help = false;
 
-            string address = "tp.dev.soft-fx.eu";
-            int port = 5020;
-
-            DateTime timestamp = new DateTime(2016, 01, 01, 3, 0, 0);
-            int count = 1000000;
-            string symbol = "EURUSD";
-            string periodicity = "M1";
-            PriceType priceType = PriceType.Bid;
-            bool bars = true;
-            bool ticks = false;
-            bool level2 = false;
-            try
-            {
-                // Create an instance of Quote History client
-
-                // Connect to the server
-                // Connect(address,port);
-
-                // Request the server
-                if (level2)
-                {
-                    // Request for the level2 history
-                    //  var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, true);
-                    //    foreach (var tick in result)
-                    //       Console.WriteLine(tick);
-                }
-                else if (ticks)
-                {
-                    // Request for the ticks history
-                    //    var result = client.QueryQuoteHistoryTicks(timestamp, count, symbol, false);
-                    //     foreach (var tick in result)
-                    //          Console.WriteLine(tick);
-                }
-                else if (bars)
-                {
-                    // Request for the bars history
-                    var time = DateTime.Now;
-                    BarRequest(timestamp, count, symbol, periodicity, "Bid");
-                    var res = time - DateTime.Now;
-                    Console.WriteLine(res);
-                    // foreach (var bar in result)
-                    //    Console.WriteLine(bar);
-                }
-
-                // Disconnect to the server
-                _client.Disconnect();
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.ReadKey();
         }
     }
 }

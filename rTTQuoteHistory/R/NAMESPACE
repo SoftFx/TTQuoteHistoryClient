@@ -3,5 +3,8 @@
 export(tthBarRequest)
 export(tthConnect)
 export(tthDisconnect)
+export(tthFileBarRequest)
+export(tthFileTickL2Request)
+export(tthFileTickRequest)
 export(tthTickL2Request)
 export(tthTickRequest)

@@ -258,10 +258,7 @@ _Pvt_Extensions
 *.Rout
 *.log
 Storage/*
-*.Rd
 *.userprefs
 examples/*.html
 examples/rsconnect/documents
-RPackage/[Dd]ata/*
-RPackage/Store/*
 

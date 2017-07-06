@@ -1,20 +1,32 @@
 #' Gets the ticks as requested
 #'
 #' @param symbol Symbol looked
-#' @param endTime Start of the time intervals
+#' @param timestamp timestamp
 #' @param count Count of ticks
 #' @export
 tthTickRequest <- function(symbol = "", endTime= "", count= "") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', endTime,count,symbol,FALSE)
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', timestamp,count,symbol,FALSE)
   if(hResult == 0){tGetTickDataFrame()}
 }
+
+#' Gets the ticks as requested
+#'
+#' @param symbol Symbol looked
+#' @param startTime Start of the time intervals
+#' @param endTime Count of ticks
+#' @export
+tthFileTickRequest <- function(symbol = "", startTime= "", endTime= "") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileTickRequest', startTime,endTime,symbol,FALSE)
+  if(hResult == 0){tGetTickDataFrame()}
+}
+
 #' Get tick table
 tGetTickDataFrame<-function()
 {
   DateTime = tGetTickDateTime()
   Bid = tGetTickBid()
   Ask = tGetTickAsk()
-  #tthClear()
+  tthClear()
   data.table(DateTime,Bid,Ask)
 }
 #' Get tick field

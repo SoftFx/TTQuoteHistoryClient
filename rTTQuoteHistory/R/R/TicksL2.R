@@ -1,13 +1,25 @@
 #' Gets the ticks level 2 as requested
 #'
 #' @param symbol Symbol looked
-#' @param endTime Start of the time intervals
+#' @param timestamp timestamp
 #' @param count Count of ticks
 #' @export
-tthTickL2Request <- function(symbol = "", endTime= "", count= "") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', endTime,count,symbol,TRUE)
+tthTickL2Request <- function(symbol = "", timestamp= "", count= "") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', timestamp,count,symbol,TRUE)
   if(hResult == 0){tGetTickL2DataFrame()}
 }
+
+#' Gets the ticks as requested
+#'
+#' @param symbol Symbol looked
+#' @param startTime Start of the time intervals
+#' @param endTime Count of ticks
+#' @export
+tthFileTickL2Request <- function(symbol = "", startTime= "", endTime= "") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileTickRequest', startTime,endTime,symbol,TRUE)
+  if(hResult == 0){tGetTickL2DataFrame()}
+}
+
 #' Get tick table
 tGetTickL2DataFrame<-function()
 {
@@ -17,7 +29,7 @@ tGetTickL2DataFrame<-function()
   PriceBid = tGetTickL2PriceBid()
   PriceAsk = tGetTickL2PriceAsk()
   Level = tGetTickL2Level()
-  #tthClear()
+  tthClear()
   data.table(DateTime,VolumeBid,VolumeAsk,PriceBid,PriceAsk,Level)
 }
 #' Get tick field

@@ -4,12 +4,12 @@
 \alias{tthTickL2Request}
 \title{Gets the ticks level 2 as requested}
 \usage{
-tthTickL2Request(symbol = "", endTime = "", count = "")
+tthTickL2Request(symbol = "", timestamp = "", count = "")
 }
 \arguments{
 \item{symbol}{Symbol looked}
 
-\item{endTime}{Start of the time intervals}
+\item{timestamp}{timestamp}
 
 \item{count}{Count of ticks}
 }
