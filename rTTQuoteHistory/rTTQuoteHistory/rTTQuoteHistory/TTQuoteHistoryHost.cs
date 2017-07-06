@@ -60,7 +60,9 @@ namespace rTTQuoteHistory
         public static int FileBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
         {
             _barList = new List<Bar>();
-            _barList.AddRange(_client.QueryQuoteHistoryBarsRange(from, to, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
+            _barList.AddRange(_client.QueryQuoteHistoryBarsRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
+                            from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
+                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
             return 0;
         }
 
@@ -140,7 +142,9 @@ namespace rTTQuoteHistory
         public static int FileTickRequest(DateTime from, DateTime to, string symbol, bool level2)
         {
             _tickList = new List<Tick>();
-            _tickList.AddRange(_client.QueryQuoteHistoryTicksRange(from,to,symbol,level2));
+            _tickList.AddRange(_client.QueryQuoteHistoryTicksRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
+                            from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
+                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol,level2));
             return 0;
         }
 

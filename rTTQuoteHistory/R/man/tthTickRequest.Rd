@@ -4,14 +4,14 @@
 \alias{tthTickRequest}
 \title{Gets the ticks as requested}
 \usage{
-tthTickRequest(symbol = "", endTime = "", count = "")
+tthTickRequest(symbol = "", timestamp = "", count = "")
 }
 \arguments{
 \item{symbol}{Symbol looked}
 
-\item{count}{Count of ticks}
-
 \item{timestamp}{timestamp}
+
+\item{count}{Count of ticks}
 }
 \description{
 Gets the ticks as requested
