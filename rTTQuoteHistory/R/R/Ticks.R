@@ -4,7 +4,7 @@
 #' @param timestamp timestamp
 #' @param count Count of ticks
 #' @export
-tthTickRequest <- function(symbol = "", endTime= "", count= "") {
+tthTickRequest <- function(symbol = "", timestamp= "", count= "") {
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', timestamp,count,symbol,FALSE)
   if(hResult == 0){tGetTickDataFrame()}
 }
