@@ -66,6 +66,19 @@ namespace rTTQuoteHistory
             return 0;
         }
 
+        private static List<Bar> BarMerge(DateTime timestamp, double count, string symbol, string periodicity,
+            string priceType)
+        {
+            var buf = _client.QueryQuoteHistoryBars(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
+                            timestamp.Minute, timestamp.Second,
+                            timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity,
+                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+            if (count > 0) buf.Reverse();
+            buf.RemoveAt(0);
+            return buf;
+        }
+
         public static int BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
@@ -89,19 +102,14 @@ namespace rTTQuoteHistory
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                 if (_barList.Count > 0)
                     timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
-                for (int i = 5000 * sign; sign * i < sign * count; i += (5000 * sign))
+                if (sign > 0) _barList.Reverse();
+                while (_barList.Count < count * sign)
                 {
-                    var buf =
-                        _client.QueryQuoteHistoryBars(
-                            new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
-                                timestamp.Minute, timestamp.Second,
-                                timestamp.Millisecond, DateTimeKind.Utc),
-                            (sign * (count - i) > 5000) ? sign * 5000 : sign * (int)(count - i), symbol, periodicity,
-                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-                    _barList.AddRange(buf);
-                    if (buf.Count > 0)
-                        timestamp = (sign < 0) ? buf[buf.Count - 1].Time : buf[0].Time;
+                    _barList.AddRange(BarMerge(timestamp, count - _barList.Count * sign + sign, symbol, periodicity, priceType));
+                    if (_barList.Count > 0)
+                        timestamp = _barList[_barList.Count - 1].Time;
                 }
+                if (sign > 0) _barList.Reverse();
             }
             return 0;
         }
@@ -144,8 +152,17 @@ namespace rTTQuoteHistory
             _tickList = new List<Tick>();
             _tickList.AddRange(_client.QueryQuoteHistoryTicksRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
                             from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
-                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol,level2));
+                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, level2));
             return 0;
+        }
+
+        private static List<Tick> TickMerge(DateTime timestamp, double count, string symbol, bool level2)
+        {
+            var buf = _client.QueryQuoteHistoryTicks(
+                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
+                            timestamp.Second, timestamp.Millisecond+Math.Sign(count), DateTimeKind.Utc), (int)count, symbol, level2);
+            if (count > 0) buf.Reverse();
+            return buf;
         }
 
         public static int TickRequest(DateTime timestamp, double count, string symbol, bool level2)
@@ -166,16 +183,14 @@ namespace rTTQuoteHistory
                             timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), 1000 * sign, symbol, level2);
                 if (_tickList.Count > 0)
                     timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
-                for (int i = 1000 * sign; sign * i < sign * count; i += (1000 * sign))
+                if (sign > 0) _tickList.Reverse();
+                while (_tickList.Count < count * sign)
                 {
-                    var buf = _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc),
-                        (sign * (count - i) > 1000) ? sign * 1000 : sign * (int)(count - i), symbol, level2);
-                    _tickList.AddRange(buf);
-                    if (buf.Count > 0)
-                        timestamp = (sign < 0) ? buf[buf.Count - 1].Id.Time : buf[0].Id.Time;
+                    _tickList.AddRange(TickMerge(timestamp, count - _tickList.Count * sign, symbol,level2));
+                    if (_tickList.Count > 0)
+                        timestamp = _tickList[_tickList.Count - 1].Id.Time;
                 }
+                if (sign > 0) _tickList.Reverse();
             }
             return 0;
         }
@@ -286,7 +301,8 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-            
+            Connect("name", "tp.st.soft-fx.eu", 5020, "5", "123qwe!");
+            TickRequest(DateTime.Now, 1001, "EURUSD", false);
         }
     }
 }
