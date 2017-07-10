@@ -57,12 +57,18 @@ namespace rTTQuoteHistory
         }
 
         #region Bars
-        public static int FileBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
+        public static int FileBarRequest(DateTime from, double count, string symbol, string periodicity, string priceType)
         {
             _barList = new List<Bar>();
-            _barList.AddRange(_client.QueryQuoteHistoryBarsRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
-                            from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
-                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
+            int barCount = 0;
+            foreach (var bar in _client.QueryQuoteHistoryBarsRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
+                            from.Second, from.Millisecond, DateTimeKind.Utc), DateTime.UtcNow, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid))
+            {
+                if(barCount >= count)
+                    break;
+                _barList.Add(bar);
+                barCount++;
+            }
             return 0;
         }
 
@@ -215,7 +221,15 @@ namespace rTTQuoteHistory
             var result = new List<double>();
             foreach (var tick in _tickList)
             {
-                result.AddRange(tick.HasBids ? tick.Level2.Bids.Select(bid => (double)bid.Volume) : new List<double>(tick.Level2.Asks.Count));
+                var buf = tick.HasBids
+                    ? tick.Level2.Bids.Select(bid => (double) bid.Volume).ToList()
+                    : new List<double>(tick.Level2.Asks.Count);
+                var count = buf.Count;
+                for(var i = 1; i <= tick.Level2.Asks.Count- count; i++)
+                {
+                    buf.Add(0);
+                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
@@ -225,7 +239,13 @@ namespace rTTQuoteHistory
             var result = new List<double>();
             foreach (var tick in _tickList)
             {
-                result.AddRange(tick.HasAsks ? tick.Level2.Asks.Select(ask => (double)ask.Volume) : new List<double>(tick.Level2.Bids.Count));
+                var buf = tick.HasAsks ? tick.Level2.Asks.Select(ask => (double)ask.Volume).ToList() : new List<double>(tick.Level2.Bids.Count);
+                var count = buf.Count;
+                for (var i = 1; i <= tick.Level2.Asks.Count - count; i++)
+                {
+                    buf.Add(0);
+                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
@@ -235,7 +255,13 @@ namespace rTTQuoteHistory
             var result = new List<double>();
             foreach (var tick in _tickList)
             {
-                result.AddRange(tick.HasBids ? tick.Level2.Bids.Select(bid => (double)bid.Price) : new List<double>(tick.Level2.Asks.Count));
+                var buf = tick.HasBids ? tick.Level2.Bids.Select(bid => (double)bid.Price).ToList() : new List<double>(tick.Level2.Asks.Count);
+                var count = buf.Count;
+                for (var i = 1; i <= tick.Level2.Asks.Count - count; i++)
+                {
+                    buf.Add(0);
+                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
@@ -245,7 +271,13 @@ namespace rTTQuoteHistory
             var result = new List<double>();
             foreach (var tick in _tickList)
             {
-                result.AddRange(tick.HasAsks ? tick.Level2.Asks.Select(ask => (double)ask.Price) : new List<double>(tick.Level2.Bids.Count));
+                var buf = tick.HasAsks ? tick.Level2.Asks.Select(ask => (double)ask.Price).ToList() : new List<double>(tick.Level2.Bids.Count);
+                var count = buf.Count;
+                for (var i = 1; i <= tick.Level2.Asks.Count - count; i++)
+                {
+                    buf.Add(0);
+                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
@@ -302,7 +334,12 @@ namespace rTTQuoteHistory
         static void Main(string[] args)
         {
             Connect("name", "tp.st.soft-fx.eu", 5020, "5", "123qwe!");
-            TickRequest(DateTime.Now, 1001, "EURUSD", false);
+            TickRequest(DateTime.Now, 1, "EURUSD", true);
+            var a = GetTickL2PriceBid();
+            //  foreach (var tick in _tickList)
+            // {
+            //    Console.WriteLine(tick);
+            //}
         }
     }
 }
