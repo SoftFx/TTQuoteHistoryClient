@@ -20,7 +20,7 @@ tthFileTickRequest <- function(symbol = "", startTime= "", endTime= "") {
   if(hResult == 0){tGetTickDataFrame()}
 }
 
-#' Gets the ticks as requested
+#' Gets next ticks after limit reaching
 #' @export
 tthNextFileTickRequest <- function() {
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextFileTickRequest')
