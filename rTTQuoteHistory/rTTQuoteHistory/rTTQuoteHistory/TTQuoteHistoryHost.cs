@@ -57,14 +57,19 @@ namespace rTTQuoteHistory
         }
 
         #region Bars
-        public static int FileBarRequest(DateTime from, double count, string symbol, string periodicity, string priceType)
+        public static int FileBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
         {
             _barList = new List<Bar>();
             int barCount = 0;
-            foreach (var bar in _client.QueryQuoteHistoryBarsRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
-                            from.Second, from.Millisecond, DateTimeKind.Utc), DateTime.UtcNow, symbol, periodicity, priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid))
+            foreach (
+                var bar in
+                    _client.QueryQuoteHistoryBarsRange(
+                        new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
+                            from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
+                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, periodicity,
+                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid))
             {
-                if(barCount >= count)
+                if (barCount >= 1000000)
                     break;
                 _barList.Add(bar);
                 barCount++;
@@ -156,9 +161,19 @@ namespace rTTQuoteHistory
         public static int FileTickRequest(DateTime from, DateTime to, string symbol, bool level2)
         {
             _tickList = new List<Tick>();
-            _tickList.AddRange(_client.QueryQuoteHistoryTicksRange(new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
+            int tickCount = 0;
+            foreach (
+                var tick in
+                    _client.QueryQuoteHistoryTicksRange(
+                        new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
                             from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
-                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, level2));
+                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, level2))
+            {
+                if (tickCount >= 1000000)
+                    break;
+                _tickList.Add(tick);
+                tickCount++;
+            }
             return 0;
         }
 
@@ -166,7 +181,7 @@ namespace rTTQuoteHistory
         {
             var buf = _client.QueryQuoteHistoryTicks(
                         new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond+Math.Sign(count), DateTimeKind.Utc), (int)count, symbol, level2);
+                            timestamp.Second, timestamp.Millisecond + Math.Sign(count), DateTimeKind.Utc), (int)count, symbol, level2);
             if (count > 0) buf.Reverse();
             return buf;
         }
@@ -192,7 +207,7 @@ namespace rTTQuoteHistory
                 if (sign > 0) _tickList.Reverse();
                 while (_tickList.Count < count * sign)
                 {
-                    _tickList.AddRange(TickMerge(timestamp, count - _tickList.Count * sign, symbol,level2));
+                    _tickList.AddRange(TickMerge(timestamp, count - _tickList.Count * sign, symbol, level2));
                     if (_tickList.Count > 0)
                         timestamp = _tickList[_tickList.Count - 1].Id.Time;
                 }
@@ -222,10 +237,10 @@ namespace rTTQuoteHistory
             foreach (var tick in _tickList)
             {
                 var buf = tick.HasBids
-                    ? tick.Level2.Bids.Select(bid => (double) bid.Volume).ToList()
+                    ? tick.Level2.Bids.Select(bid => (double)bid.Volume).ToList()
                     : new List<double>(tick.Level2.Asks.Count);
                 var count = buf.Count;
-                for(var i = 1; i <= tick.Level2.Asks.Count- count; i++)
+                for (var i = 1; i <= tick.Level2.Asks.Count - count; i++)
                 {
                     buf.Add(0);
                 }
