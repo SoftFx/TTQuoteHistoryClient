@@ -234,7 +234,7 @@ namespace rTTQuoteHistory
         {
             var buf = _client.QueryQuoteHistoryTicks(
                         new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond + Math.Sign(count), DateTimeKind.Utc), (int)count, symbol, level2);
+                            timestamp.Second, timestamp.Millisecond - Math.Sign(count), DateTimeKind.Utc), (int)count, symbol, level2);
             if (count > 0) buf.Reverse();
             return buf;
         }
@@ -402,7 +402,7 @@ namespace rTTQuoteHistory
         static void Main(string[] args)
         {
             Connect("name", "tp.st.soft-fx.eu", 5020, "5", "123qwe!");
-            //TickRequest(DateTime.Now, 1, "EURUSD", true);
+            TickRequest(new DateTime(2017,02,01), -1001, "EURUSD", true);
             //var a = GetTickL2PriceBid();
             //  foreach (var tick in _tickList)
             // {
