@@ -20,6 +20,14 @@ tthFileTickRequest <- function(symbol = "", startTime= "", endTime= "") {
   if(hResult == 0){tGetTickDataFrame()}
 }
 
+#' Gets the ticks as requested
+#' @export
+tthNextFileTickRequest <- function() {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextFileTickRequest')
+  if(hResult == 0){tGetTickDataFrame()}
+  if(hResult == -1) {print("You haven't requested ticks already")}
+}
+
 #' Get tick table
 tGetTickDataFrame<-function()
 {

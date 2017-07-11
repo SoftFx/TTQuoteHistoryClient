@@ -21,6 +21,25 @@ namespace rTTQuoteHistory
         private static List<Bar> _barList;
         private static List<Tick> _tickList;
 
+        private static TickQuery _lastTickQuery;
+        private static BarQuery _lastBarQuery;
+
+        struct TickQuery
+        {
+            public DateTime from;
+            public DateTime to;
+            public string symbol;
+            public bool level2;
+        }
+
+        struct BarQuery
+        {
+            public DateTime from;
+            public DateTime to;
+            public string symbol;
+            public string periodicity;
+            public string priceType;
+        }
 
         public static int Connect(string name, string address, double port, string login, string password)
         {
@@ -70,10 +89,28 @@ namespace rTTQuoteHistory
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid))
             {
                 if (barCount >= 1000000)
+                {
+                    _lastBarQuery = new BarQuery
+                    {
+                        from = _barList.Last().Time,
+                        to = to,
+                        periodicity = periodicity,
+                        priceType = priceType,
+                        symbol = symbol
+                    };
                     break;
+                }
                 _barList.Add(bar);
                 barCount++;
             }
+            return 0;
+        }
+
+        public static int NextFileBarRequest()
+        {
+            if (_lastBarQuery.symbol == null) return -1;
+            FileBarRequest(_lastBarQuery.from, _lastBarQuery.to, _lastBarQuery.symbol, _lastBarQuery.periodicity,
+                _lastBarQuery.priceType);
             return 0;
         }
 
@@ -170,10 +207,26 @@ namespace rTTQuoteHistory
                             to.Second, to.Millisecond, DateTimeKind.Utc), symbol, level2))
             {
                 if (tickCount >= 1000000)
+                {
+                    _lastTickQuery = new TickQuery
+                    {
+                        from = _tickList.Last().Id.Time,
+                        to = to,
+                        level2 = level2,
+                        symbol = symbol
+                    };
                     break;
+                }
                 _tickList.Add(tick);
                 tickCount++;
             }
+            return 0;
+        }
+
+        public static int NextFileTickRequest()
+        {
+            if (_lastTickQuery.symbol == null) return -1;
+            FileTickRequest(_lastTickQuery.from, _lastTickQuery.to, _lastTickQuery.symbol, _lastTickQuery.level2);
             return 0;
         }
 
@@ -349,8 +402,8 @@ namespace rTTQuoteHistory
         static void Main(string[] args)
         {
             Connect("name", "tp.st.soft-fx.eu", 5020, "5", "123qwe!");
-            TickRequest(DateTime.Now, 1, "EURUSD", true);
-            var a = GetTickL2PriceBid();
+            //TickRequest(DateTime.Now, 1, "EURUSD", true);
+            //var a = GetTickL2PriceBid();
             //  foreach (var tick in _tickList)
             // {
             //    Console.WriteLine(tick);
