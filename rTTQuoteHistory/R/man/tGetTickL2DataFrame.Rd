@@ -2,10 +2,10 @@
 % Please edit documentation in R/TicksL2.R
 \name{tGetTickL2DataFrame}
 \alias{tGetTickL2DataFrame}
-\title{Get tick table}
+\title{Get level 2 tick table}
 \usage{
-tGetTickL2DataFrame()
+tGetTickL2DataFrame(depth)
 }
 \description{
-Get tick table
+Get level 2 tick table
 }

@@ -2,10 +2,10 @@
 % Please edit documentation in R/TicksL2.R
 \name{tGetTickL2VolumeAsk}
 \alias{tGetTickL2VolumeAsk}
-\title{Get tick field}
+\title{Get level 2 tick field}
 \usage{
-tGetTickL2VolumeAsk()
+tGetTickL2VolumeAsk(depth)
 }
 \description{
-Get tick field
+Get level 2 tick field
 }

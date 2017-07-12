@@ -1,12 +1,7 @@
 ﻿using System;
 using TTQuoteHistoryClient;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using TickTrader.BusinessObjects.Requests;
 
 namespace rTTQuoteHistory
 {
@@ -284,7 +279,7 @@ namespace rTTQuoteHistory
             return _tickList.Select(tick => tick.HasAsks ? (double)tick.BestAsk.Price : 0.0).ToArray();
         }
 
-        public static double[] GetTickL2VolumeBid()
+        public static double[] GetTickL2VolumeBid(double depth)
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -297,12 +292,19 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                result.AddRange(buf);
+                if (depth > 0 && depth < buf.Count)
+                {
+                    result.AddRange(buf.GetRange(0, (int)depth));
+                }
+                else
+                {
+                    result.AddRange(buf);
+                }
             }
             return result.ToArray();
         }
 
-        public static double[] GetTickL2VolumeAsk()
+        public static double[] GetTickL2VolumeAsk(double depth)
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -313,12 +315,19 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                result.AddRange(buf);
+                if (depth > 0 && depth < buf.Count)
+                {
+                    result.AddRange(buf.GetRange(0, (int)depth));
+                }
+                else
+                {
+                    result.AddRange(buf);
+                }
             }
             return result.ToArray();
         }
 
-        public static double[] GetTickL2PriceBid()
+        public static double[] GetTickL2PriceBid(double depth)
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -329,12 +338,19 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                result.AddRange(buf);
+                if (depth > 0 && depth < buf.Count)
+                {
+                    result.AddRange(buf.GetRange(0, (int)depth));
+                }
+                else
+                {
+                    result.AddRange(buf);
+                }
             }
             return result.ToArray();
         }
 
-        public static double[] GetTickL2PriceAsk()
+        public static double[] GetTickL2PriceAsk(double depth)
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -345,27 +361,42 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                result.AddRange(buf);
+                if (depth > 0 && depth < buf.Count)
+                {
+                    result.AddRange(buf.GetRange(0, (int)depth));
+                }
+                else
+                {
+                    result.AddRange(buf);
+                }
             }
             return result.ToArray();
         }
 
-        public static int[] GetTickL2Level()
+        public static int[] GetTickL2Level(double depth)
         {
             var result = new List<int>();
             foreach (var tick in _tickList)
             {
-                result.AddRange(Enumerable.Range(1, Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count)));
+                if (depth <= 0 || depth > Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count))
+                {
+                    depth = Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count);
+                }
+                result.AddRange(Enumerable.Range(1, (int)depth));
             }
             return result.ToArray();
         }
 
-        public static DateTime[] GetTickL2DateTime()
+        public static DateTime[] GetTickL2DateTime(double depth)
         {
             var result = new List<DateTime>();
             foreach (var tick in _tickList)
             {
-                for (int level = 0; level < Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count); level++)
+                if (depth <= 0 || depth > Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count))
+                {
+                    depth = Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count);
+                }
+                for (int level = 0; level < depth; level++)
                 {
                     result.Add(tick.Id.Time.AddHours(3));
                 }
@@ -402,7 +433,7 @@ namespace rTTQuoteHistory
         static void Main(string[] args)
         {
             Connect("name", "tp.st.soft-fx.eu", 5020, "5", "123qwe!");
-            TickRequest(new DateTime(2017,02,01), -1001, "EURUSD", true);
+            TickRequest(new DateTime(2017, 02, 01), -1001, "EURUSD", true);
             //var a = GetTickL2PriceBid();
             //  foreach (var tick in _tickList)
             // {
