@@ -795,7 +795,7 @@ namespace TTQuoteHistoryClient
                                     Price = (decimal)level2record.Price,
                                     Volume = (decimal)level2record.Volume
                                 };
-                                tick.Level2.Bids.Add(bid);
+                                tick.Level2.Bids.Insert(0, bid);
                             }
                             if (level2record.Type == FxPriceType.Ask)
                             {
