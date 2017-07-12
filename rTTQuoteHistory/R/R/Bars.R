@@ -1,13 +1,36 @@
 #' Gets the bars as requested
 #'
 #' @param symbol Symbol looked
-#' @param startTime Start of the time intervals
-#' @param count Count of ticks
+#' @param timestamp timestamp
+#' @param count Count of bars
+#' @param periodicity periodicity
+#' @param priceType priceType
 #' @export
-tthBarRequest <- function(symbol = "", endTime= "", count= "", periodicity="M1",priceType = "Bid") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'BarRequest', endTime, count, symbol, periodicity, priceType)
+tthBarRequest <- function(symbol = "", timestamp= "", count= "", periodicity="M1",priceType = "Bid") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'BarRequest', timestamp, count, symbol, periodicity, priceType)
   if(hResult == 0){tGetBarDataFrame()}
 }
+#' Gets the bars as requested
+#'
+#' @param symbol Symbol looked
+#' @param startTime Start of the time intervals
+#' @param endTime Count of bars
+#' @param periodicity periodicity
+#' @param priceType priceType
+#' @export
+tthFileBarRequest <- function(symbol = "", startTime= "", endTime= "", periodicity="M1",priceType = "Bid") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileBarRequest', startTime, endTime, symbol, periodicity, priceType)
+  if(hResult == 0){tGetBarDataFrame()}
+}
+#' Gets next bars after limit reaching
+#'
+#' @export
+tthNextFileBarRequest <- function() {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextFileBarRequest')
+  if(hResult == 0){tGetBarDataFrame()}
+  if(hResult == -1) {print("You haven't requested bars already")}
+}
+
 #' Get Bar table
 tGetBarDataFrame<-function()
 {
@@ -17,6 +40,7 @@ tGetBarDataFrame<-function()
   Low = tGetBarLow()
   Close = tGetBarClose()
   Volume = tGetBarVolume()
+  tthClear()
   data.table(DateTime,Open,High,Low,Close,Volume)
 }
 #' Get Bar field
