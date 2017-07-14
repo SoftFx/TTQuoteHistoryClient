@@ -78,9 +78,7 @@ namespace rTTQuoteHistory
             foreach (
                 var bar in
                     _client.QueryQuoteHistoryBarsRange(
-                        new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
-                            from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
-                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, periodicity,
+                        new DateTime(from.Ticks, DateTimeKind.Utc), new DateTime(to.Ticks, DateTimeKind.Utc), symbol, periodicity,
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid))
             {
                 if (barCount >= 1000000)
@@ -113,9 +111,7 @@ namespace rTTQuoteHistory
             string priceType)
         {
             var buf = _client.QueryQuoteHistoryBars(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
-                            timestamp.Minute, timestamp.Second,
-                            timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity,
+                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, periodicity,
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
             if (count > 0) buf.Reverse();
             buf.RemoveAt(0);
@@ -130,18 +126,14 @@ namespace rTTQuoteHistory
             {
                 _barList =
                     _client.QueryQuoteHistoryBars(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
-                            timestamp.Minute, timestamp.Second,
-                            timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, periodicity,
+                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, periodicity,
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
             }
             else
             {
                 _barList =
                     _client.QueryQuoteHistoryBars(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour,
-                            timestamp.Minute, timestamp.Second,
-                            timestamp.Millisecond, DateTimeKind.Utc), 5000 * sign, symbol, periodicity,
+                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), 5000 * sign, symbol, periodicity,
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                 if (_barList.Count > 0)
                     timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
@@ -197,9 +189,7 @@ namespace rTTQuoteHistory
             foreach (
                 var tick in
                     _client.QueryQuoteHistoryTicksRange(
-                        new DateTime(from.Year, from.Month, from.Day, from.Hour, from.Minute,
-                            from.Second, from.Millisecond, DateTimeKind.Utc), new DateTime(to.Year, to.Month, to.Day, to.Hour, to.Minute,
-                            to.Second, to.Millisecond, DateTimeKind.Utc), symbol, level2))
+                        new DateTime(from.Ticks, DateTimeKind.Utc), new DateTime(to.Ticks, DateTimeKind.Utc), symbol, level2))
             {
                 if (tickCount >= 1000000)
                 {
@@ -241,15 +231,13 @@ namespace rTTQuoteHistory
             {
                 _tickList =
                     _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), (int)count, symbol, level2);
+                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, level2);
             }
             else
             {
                 _tickList =
                     _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond, DateTimeKind.Utc), 1000 * sign, symbol, level2);
+                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), 1000 * sign, symbol, level2);
                 if (_tickList.Count > 0)
                     timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
                 if (sign > 0) _tickList.Reverse();
@@ -432,13 +420,7 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-            Connect("name", "tp.st.soft-fx.eu", 5020, "5", "123qwe!");
-            TickRequest(new DateTime(2017, 02, 01), -1001, "EURUSD", true);
-            //var a = GetTickL2PriceBid();
-            //  foreach (var tick in _tickList)
-            // {
-            //    Console.WriteLine(tick);
-            //}
+            
         }
     }
 }
