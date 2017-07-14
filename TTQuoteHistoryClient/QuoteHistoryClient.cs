@@ -166,6 +166,7 @@ namespace TTQuoteHistoryClient
             options.Log.States = false;
             options.Log.Messages = false;
 #endif
+            options.SendBufferSize = 10485760;
             _session = new ClientSession(name, options);
             _sessionListener = new ClientSessionListener(this);
             _session.Listener = _sessionListener;
