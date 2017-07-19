@@ -166,6 +166,7 @@ namespace TTQuoteHistoryClient
             options.Log.States = false;
             options.Log.Messages = false;
 #endif
+            options.SendBufferSize = 10485760;
             _session = new ClientSession(name, options);
             _sessionListener = new ClientSessionListener(this);
             _session.Listener = _sessionListener;
@@ -795,7 +796,7 @@ namespace TTQuoteHistoryClient
                                     Price = (decimal)level2record.Price,
                                     Volume = (decimal)level2record.Volume
                                 };
-                                tick.Level2.Bids.Add(bid);
+                                tick.Level2.Bids.Insert(0, bid);
                             }
                             if (level2record.Type == FxPriceType.Ask)
                             {

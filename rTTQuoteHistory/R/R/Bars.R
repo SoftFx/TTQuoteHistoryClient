@@ -22,6 +22,15 @@ tthFileBarRequest <- function(symbol = "", startTime= "", endTime= "", periodici
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileBarRequest', startTime, endTime, symbol, periodicity, priceType)
   if(hResult == 0){tGetBarDataFrame()}
 }
+#' Gets next bars after limit reaching
+#'
+#' @export
+tthNextFileBarRequest <- function() {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextFileBarRequest')
+  if(hResult == 0){tGetBarDataFrame()}
+  if(hResult == -1) {print("You haven't requested bars already")}
+}
+
 #' Get Bar table
 tGetBarDataFrame<-function()
 {

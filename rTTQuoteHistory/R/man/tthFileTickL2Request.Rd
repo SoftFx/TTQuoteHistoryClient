@@ -2,9 +2,10 @@
 % Please edit documentation in R/TicksL2.R
 \name{tthFileTickL2Request}
 \alias{tthFileTickL2Request}
-\title{Gets the ticks as requested}
+\title{Gets the ticks level 2 as requested}
 \usage{
-tthFileTickL2Request(symbol = "", startTime = "", endTime = "")
+tthFileTickL2Request(symbol = "", startTime = "", endTime = "",
+  depth = 0)
 }
 \arguments{
 \item{symbol}{Symbol looked}
@@ -12,7 +13,9 @@ tthFileTickL2Request(symbol = "", startTime = "", endTime = "")
 \item{startTime}{Start of the time intervals}
 
 \item{endTime}{Count of ticks}
+
+\item{depth}{Depth of ticks}
 }
 \description{
-Gets the ticks as requested
+Gets the ticks level 2 as requested
 }

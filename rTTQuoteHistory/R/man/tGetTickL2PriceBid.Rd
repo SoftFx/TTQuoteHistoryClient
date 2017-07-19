@@ -2,10 +2,10 @@
 % Please edit documentation in R/TicksL2.R
 \name{tGetTickL2PriceBid}
 \alias{tGetTickL2PriceBid}
-\title{Get tick field}
+\title{Get level 2 tick field}
 \usage{
-tGetTickL2PriceBid()
+tGetTickL2PriceBid(depth)
 }
 \description{
-Get tick field
+Get level 2 tick field
 }

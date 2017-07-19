@@ -5,7 +5,7 @@
 \title{Connects to a TT server}
 \usage{
 tthConnect(address = "", login = "", password = "", port = 5020,
-  name = paste0("clinet_", Sys.getpid()))
+  name = paste0("client_", Sys.getpid()))
 }
 \arguments{
 \item{address}{Url of the server}

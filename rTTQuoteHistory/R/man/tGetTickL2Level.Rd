@@ -2,10 +2,10 @@
 % Please edit documentation in R/TicksL2.R
 \name{tGetTickL2Level}
 \alias{tGetTickL2Level}
-\title{Get tick field}
+\title{Get level 2 tick field}
 \usage{
-tGetTickL2Level()
+tGetTickL2Level(depth)
 }
 \description{
-Get tick field
+Get level 2 tick field
 }
