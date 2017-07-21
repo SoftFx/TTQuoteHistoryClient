@@ -71,7 +71,7 @@ namespace rTTQuoteHistory
         }
 
         #region Bars
-        public static int FileBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
+        public static int StreamBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
         {
             _barList = new List<Bar>();
             int barCount = 0;
@@ -99,15 +99,15 @@ namespace rTTQuoteHistory
             return 0;
         }
 
-        public static int NextFileBarRequest()
+        public static int NextStreamBarRequest()
         {
             if (_lastBarQuery.symbol == null) return -1;
-            FileBarRequest(_lastBarQuery.from, _lastBarQuery.to, _lastBarQuery.symbol, _lastBarQuery.periodicity,
+            StreamBarRequest(_lastBarQuery.from, _lastBarQuery.to, _lastBarQuery.symbol, _lastBarQuery.periodicity,
                 _lastBarQuery.priceType);
             return 0;
         }
 
-        private static List<Bar> BarMerge(DateTime timestamp, double count, string symbol, string periodicity,
+        private static IEnumerable<Bar> GetNextBars(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
             var buf = _client.QueryQuoteHistoryBars(
@@ -141,7 +141,7 @@ namespace rTTQuoteHistory
                 while (_barList.Count < count * sign)
                 {
                     var lastCount = _barList.Count;
-                    _barList.AddRange(BarMerge(timestamp, count - _barList.Count * sign + sign, symbol, periodicity, priceType));
+                    _barList.AddRange(GetNextBars(timestamp, count - _barList.Count * sign + sign, symbol, periodicity, priceType));
                     if (_barList.Count > 0)
                         timestamp = _barList[_barList.Count - 1].Time;
                     if (lastCount == _barList.Count) break;
@@ -184,7 +184,7 @@ namespace rTTQuoteHistory
 
         #region Ticks
 
-        public static int FileTickRequest(DateTime from, DateTime to, string symbol, bool level2)
+        public static int StreamTickRequest(DateTime from, DateTime to, string symbol, bool level2)
         {
             _tickList = new List<Tick>();
             int tickCount = 0;
@@ -210,18 +210,17 @@ namespace rTTQuoteHistory
             return 0;
         }
 
-        public static int NextFileTickRequest()
+        public static int NextStreamTickRequest()
         {
             if (_lastTickQuery.symbol == null) return -1;
-            FileTickRequest(_lastTickQuery.from, _lastTickQuery.to, _lastTickQuery.symbol, _lastTickQuery.level2);
+            StreamTickRequest(_lastTickQuery.from, _lastTickQuery.to, _lastTickQuery.symbol, _lastTickQuery.level2);
             return 0;
         }
 
-        private static List<Tick> TickMerge(DateTime timestamp, double count, string symbol, bool level2)
+        private static IEnumerable<Tick> GetNextTicks(DateTime timestamp, double count, string symbol, bool level2)
         {
             var buf = _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute,
-                            timestamp.Second, timestamp.Millisecond - Math.Sign(count), DateTimeKind.Utc), (int)count, symbol, level2);
+                        new DateTime(timestamp.Ticks - Math.Sign(count)*10000, DateTimeKind.Utc), (int)count, symbol, level2);
             if (count > 0) buf.Reverse();
             return buf;
         }
@@ -246,7 +245,7 @@ namespace rTTQuoteHistory
                 while (_tickList.Count < count * sign)
                 {
                     var lastCount = _tickList.Count;
-                    _tickList.AddRange(TickMerge(timestamp, count * sign - _tickList.Count > 1000 ? 1000 * sign : count - _tickList.Count * sign, symbol, level2));
+                    _tickList.AddRange(GetNextTicks(timestamp, count * sign - _tickList.Count > 1000 ? 1000 * sign : count - _tickList.Count * sign, symbol, level2));
                     if (_tickList.Count > 0)
                         timestamp = _tickList[_tickList.Count - 1].Id.Time;
                     if (lastCount == _tickList.Count) break;
@@ -271,7 +270,7 @@ namespace rTTQuoteHistory
             return _tickList.Select(tick => tick.HasAsks ? (double)tick.BestAsk.Price : 0.0).ToArray();
         }
 
-        public static double[] GetTickL2VolumeBid(double depth)
+        public static double[] GetTickL2VolumeBid()
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -284,19 +283,12 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                if (depth > 0 && depth < buf.Count)
-                {
-                    result.AddRange(buf.GetRange(0, (int)depth));
-                }
-                else
-                {
-                    result.AddRange(buf);
-                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
 
-        public static double[] GetTickL2VolumeAsk(double depth)
+        public static double[] GetTickL2VolumeAsk()
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -307,19 +299,12 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                if (depth > 0 && depth < buf.Count)
-                {
-                    result.AddRange(buf.GetRange(0, (int)depth));
-                }
-                else
-                {
-                    result.AddRange(buf);
-                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
 
-        public static double[] GetTickL2PriceBid(double depth)
+        public static double[] GetTickL2PriceBid()
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -330,19 +315,12 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                if (depth > 0 && depth < buf.Count)
-                {
-                    result.AddRange(buf.GetRange(0, (int)depth));
-                }
-                else
-                {
-                    result.AddRange(buf);
-                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
 
-        public static double[] GetTickL2PriceAsk(double depth)
+        public static double[] GetTickL2PriceAsk()
         {
             var result = new List<double>();
             foreach (var tick in _tickList)
@@ -353,42 +331,27 @@ namespace rTTQuoteHistory
                 {
                     buf.Add(0);
                 }
-                if (depth > 0 && depth < buf.Count)
-                {
-                    result.AddRange(buf.GetRange(0, (int)depth));
-                }
-                else
-                {
-                    result.AddRange(buf);
-                }
+                result.AddRange(buf);
             }
             return result.ToArray();
         }
 
-        public static int[] GetTickL2Level(double depth)
+        public static int[] GetTickL2Level()
         {
             var result = new List<int>();
             foreach (var tick in _tickList)
             {
-                if (depth <= 0 || depth > Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count))
-                {
-                    depth = Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count);
-                }
-                result.AddRange(Enumerable.Range(1, (int)depth));
+                result.AddRange(Enumerable.Range(1, Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count)));
             }
             return result.ToArray();
         }
 
-        public static DateTime[] GetTickL2DateTime(double depth)
+        public static DateTime[] GetTickL2DateTime()
         {
             var result = new List<DateTime>();
             foreach (var tick in _tickList)
             {
-                if (depth <= 0 || depth > Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count))
-                {
-                    depth = Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count);
-                }
-                for (int level = 0; level < depth; level++)
+                for (int level = 0; level < Math.Max(tick.Level2.Bids.Count, tick.Level2.Asks.Count); level++)
                 {
                     result.Add(tick.Id.Time.AddHours(3));
                 }

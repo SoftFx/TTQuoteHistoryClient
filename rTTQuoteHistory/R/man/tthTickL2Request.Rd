@@ -4,7 +4,7 @@
 \alias{tthTickL2Request}
 \title{Gets the ticks level 2 as requested}
 \usage{
-tthTickL2Request(symbol = "", timestamp = "", count = "", depth = 0)
+tthTickL2Request(symbol = "", timestamp = "", count = "")
 }
 \arguments{
 \item{symbol}{Symbol looked}
@@ -12,8 +12,6 @@ tthTickL2Request(symbol = "", timestamp = "", count = "", depth = 0)
 \item{timestamp}{timestamp}
 
 \item{count}{Count of ticks}
-
-\item{depth}{Depth of ticks}
 }
 \description{
 Gets the ticks level 2 as requested

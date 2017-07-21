@@ -4,7 +4,7 @@
 \alias{tGetTickL2DataFrame}
 \title{Get level 2 tick table}
 \usage{
-tGetTickL2DataFrame(depth)
+tGetTickL2DataFrame()
 }
 \description{
 Get level 2 tick table

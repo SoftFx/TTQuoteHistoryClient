@@ -4,7 +4,7 @@
 \alias{tGetTickL2VolumeAsk}
 \title{Get level 2 tick field}
 \usage{
-tGetTickL2VolumeAsk(depth)
+tGetTickL2VolumeAsk()
 }
 \description{
 Get level 2 tick field
