@@ -140,9 +140,11 @@ namespace rTTQuoteHistory
                 if (sign > 0) _barList.Reverse();
                 while (_barList.Count < count * sign)
                 {
+                    var lastCount = _barList.Count;
                     _barList.AddRange(BarMerge(timestamp, count - _barList.Count * sign + sign, symbol, periodicity, priceType));
                     if (_barList.Count > 0)
                         timestamp = _barList[_barList.Count - 1].Time;
+                    if (lastCount == _barList.Count) break;
                 }
                 if (sign > 0) _barList.Reverse();
             }
@@ -243,9 +245,11 @@ namespace rTTQuoteHistory
                 if (sign > 0) _tickList.Reverse();
                 while (_tickList.Count < count * sign)
                 {
-                    _tickList.AddRange(TickMerge(timestamp, count - _tickList.Count * sign, symbol, level2));
+                    var lastCount = _tickList.Count;
+                    _tickList.AddRange(TickMerge(timestamp, count * sign - _tickList.Count > 1000 ? 1000 * sign : count - _tickList.Count * sign, symbol, level2));
                     if (_tickList.Count > 0)
                         timestamp = _tickList[_tickList.Count - 1].Id.Time;
+                    if (lastCount == _tickList.Count) break;
                 }
                 if (sign > 0) _tickList.Reverse();
             }
@@ -420,7 +424,7 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-            
+
         }
     }
 }
