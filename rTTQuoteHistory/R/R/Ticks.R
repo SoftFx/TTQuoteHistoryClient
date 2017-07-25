@@ -23,7 +23,7 @@ tthStreamTickRequest <- function(symbol = "", startTime= "", endTime= "") {
 #' Gets next ticks after limit reaching
 #' @export
 tthNextStreamTickRequest <- function() {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamFileTickRequest')
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextStreamTickRequest')
   if(hResult == 0){tGetTickDataFrame()}
   if(hResult == -1) {print("You haven't requested ticks already")}
 }
