@@ -141,7 +141,7 @@ namespace rTTQuoteHistory
                 while (_barList.Count < count * sign)
                 {
                     var lastCount = _barList.Count;
-                    _barList.AddRange(GetNextBars(timestamp, count * sign - _barList.Count > 5000 ? 5000 * sign : count - _barList.Count * sign, symbol, periodicity, priceType));
+                    _barList.AddRange(GetNextBars(timestamp, count * sign - _barList.Count >= 5000 ? 5000 * sign : count - _barList.Count * sign+ sign, symbol, periodicity, priceType));
                     if (_barList.Count > 0)
                         timestamp = _barList[_barList.Count - 1].Time;
                     if (lastCount == _barList.Count) break;
@@ -387,7 +387,7 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-
+            
         }
     }
 }
