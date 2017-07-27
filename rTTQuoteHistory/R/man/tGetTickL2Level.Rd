@@ -4,7 +4,7 @@
 \alias{tGetTickL2Level}
 \title{Get level 2 tick field}
 \usage{
-tGetTickL2Level(depth)
+tGetTickL2Level()
 }
 \description{
 Get level 2 tick field

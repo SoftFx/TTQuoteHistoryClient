@@ -4,7 +4,7 @@
 \alias{tGetTickL2VolumeBid}
 \title{Get level 2 tick field}
 \usage{
-tGetTickL2VolumeBid(depth)
+tGetTickL2VolumeBid()
 }
 \description{
 Get level 2 tick field

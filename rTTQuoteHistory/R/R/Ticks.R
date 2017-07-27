@@ -15,15 +15,15 @@ tthTickRequest <- function(symbol = "", timestamp= "", count= "") {
 #' @param startTime Start of the time intervals
 #' @param endTime Count of ticks
 #' @export
-tthFileTickRequest <- function(symbol = "", startTime= "", endTime= "") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileTickRequest', startTime,endTime,symbol,FALSE)
+tthStreamTickRequest <- function(symbol = "", startTime= "", endTime= "") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamTickRequest', startTime,endTime,symbol,FALSE)
   if(hResult == 0){tGetTickDataFrame()}
 }
 
 #' Gets next ticks after limit reaching
 #' @export
-tthNextFileTickRequest <- function() {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextFileTickRequest')
+tthNextStreamTickRequest <- function() {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextStreamTickRequest')
   if(hResult == 0){tGetTickDataFrame()}
   if(hResult == -1) {print("You haven't requested ticks already")}
 }

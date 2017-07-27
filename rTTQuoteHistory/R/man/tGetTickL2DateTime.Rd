@@ -4,7 +4,7 @@
 \alias{tGetTickL2DateTime}
 \title{Get level 2 tick field}
 \usage{
-tGetTickL2DateTime(depth)
+tGetTickL2DateTime()
 }
 \description{
 Get level 2 tick field

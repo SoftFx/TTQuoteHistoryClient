@@ -18,15 +18,15 @@ tthBarRequest <- function(symbol = "", timestamp= "", count= "", periodicity="M1
 #' @param periodicity periodicity
 #' @param priceType priceType
 #' @export
-tthFileBarRequest <- function(symbol = "", startTime= "", endTime= "", periodicity="M1",priceType = "Bid") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileBarRequest', startTime, endTime, symbol, periodicity, priceType)
+tthStreamBarRequest <- function(symbol = "", startTime= "", endTime= "", periodicity="M1",priceType = "Bid") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamBarRequest', startTime, endTime, symbol, periodicity, priceType)
   if(hResult == 0){tGetBarDataFrame()}
 }
 #' Gets next bars after limit reaching
 #'
 #' @export
-tthNextFileBarRequest <- function() {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextFileBarRequest')
+tthNextStreamBarRequest <- function() {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamFileBarRequest')
   if(hResult == 0){tGetBarDataFrame()}
   if(hResult == -1) {print("You haven't requested bars already")}
 }

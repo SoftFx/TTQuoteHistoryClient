@@ -3,11 +3,10 @@
 #' @param symbol Symbol looked
 #' @param timestamp timestamp
 #' @param count Count of ticks
-#' @param depth Depth of ticks
 #' @export
-tthTickL2Request <- function(symbol = "", timestamp= "", count= "",depth = 0) {
+tthTickL2Request <- function(symbol = "", timestamp= "", count= "") {
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'TickRequest', timestamp,count,symbol,TRUE)
-  if(hResult == 0){tGetTickL2DataFrame(depth)}
+  if(hResult == 0){tGetTickL2DataFrame()}
 }
 
 #' Gets the ticks level 2 as requested
@@ -15,49 +14,48 @@ tthTickL2Request <- function(symbol = "", timestamp= "", count= "",depth = 0) {
 #' @param symbol Symbol looked
 #' @param startTime Start of the time intervals
 #' @param endTime Count of ticks
-#' @param depth Depth of ticks
 #' @export
-tthFileTickL2Request <- function(symbol = "", startTime= "", endTime= "",depth = 0) {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FileTickRequest', startTime,endTime,symbol,TRUE)
-  if(hResult == 0){tGetTickL2DataFrame(depth)}
+tthStreamTickL2Request <- function(symbol = "", startTime= "", endTime= "") {
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamTickRequest', startTime,endTime,symbol,TRUE)
+  if(hResult == 0){tGetTickL2DataFrame()}
 }
 
 #' Get level 2 tick table
-tGetTickL2DataFrame<-function(depth)
+tGetTickL2DataFrame<-function()
 {
-  DateTime = tGetTickL2DateTime(depth)
-  VolumeBid = tGetTickL2VolumeBid(depth)
-  VolumeAsk = tGetTickL2VolumeAsk(depth)
-  PriceBid = tGetTickL2PriceBid(depth)
-  PriceAsk = tGetTickL2PriceAsk(depth)
-  Level = tGetTickL2Level(depth)
+  DateTime = tGetTickL2DateTime()
+  VolumeBid = tGetTickL2VolumeBid()
+  VolumeAsk = tGetTickL2VolumeAsk()
+  PriceBid = tGetTickL2PriceBid()
+  PriceAsk = tGetTickL2PriceAsk()
+  Level = tGetTickL2Level()
   tthClear()
   data.table(DateTime,VolumeBid,VolumeAsk,PriceBid,PriceAsk,Level)
 }
 #' Get level 2 tick field
-tGetTickL2VolumeBid<-function(depth){
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2VolumeBid',depth)
+tGetTickL2VolumeBid<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2VolumeBid')
 }
 #' Get level 2 tick field
-tGetTickL2VolumeAsk<-function(depth){
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2VolumeAsk',depth)
+tGetTickL2VolumeAsk<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2VolumeAsk')
 }
 #' Get level 2 tick field
-tGetTickL2PriceBid<-function(depth){
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2PriceBid',depth)
-}
-
-#' Get level 2 tick field
-tGetTickL2PriceAsk<-function(depth){
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2PriceAsk',depth)
+tGetTickL2PriceBid<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2PriceBid')
 }
 
 #' Get level 2 tick field
-tGetTickL2Level<-function(depth){
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2Level',depth)
+tGetTickL2PriceAsk<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2PriceAsk')
 }
 
 #' Get level 2 tick field
-tGetTickL2DateTime<-function(depth){
-  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2DateTime',depth)
+tGetTickL2Level<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2Level')
+}
+
+#' Get level 2 tick field
+tGetTickL2DateTime<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'GetTickL2DateTime')
 }

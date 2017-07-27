@@ -4,7 +4,7 @@
 \alias{tGetTickL2PriceAsk}
 \title{Get level 2 tick field}
 \usage{
-tGetTickL2PriceAsk(depth)
+tGetTickL2PriceAsk()
 }
 \description{
 Get level 2 tick field
