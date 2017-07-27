@@ -684,6 +684,7 @@ namespace TTQuoteHistoryClient
 
             var periodicity = Periodicity.Parse(pereodicity);
             var timestamp = periodicity.GetPeriodStartTime(from);
+            var last = timestamp;
 
             var filename = periodicity + " " + priceType.ToString("g").ToLowerInvariant();
             var zipSerializer = new ItemsZipSerializer<HistoryBar, List<HistoryBar>>(BarFormatter.Default, filename);
@@ -706,6 +707,11 @@ namespace TTQuoteHistoryClient
                             continue;
                         if (historyBar.Time > to)
                             break;
+
+                        if (historyBar.Time <= last)
+                            continue;
+                        last = historyBar.Time;
+
                         yield return new Bar
                         {
                             Time = historyBar.Time,
@@ -753,6 +759,7 @@ namespace TTQuoteHistoryClient
             }
 
             var timestamp = from;
+            var last = timestamp;
 
             var filename = level2 ? "ticks level2" : "ticks";
             var formatter = level2 ? (IFormatter<TickValue>)FeedTickLevel2Formatter.Instance : FeedTickFormatter.Instance;
@@ -776,6 +783,10 @@ namespace TTQuoteHistoryClient
                             continue;
                         if (historyTick.Time > to)
                             break;
+
+                        if (historyTick.Time <= last)
+                            continue;
+                        last = historyTick.Time;
 
                         var tick = new Tick()
                         {
