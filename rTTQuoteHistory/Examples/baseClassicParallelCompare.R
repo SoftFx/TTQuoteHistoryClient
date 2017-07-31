@@ -13,7 +13,7 @@ Payload<-function(vectorVariable, variable){
   1
 }
 
-RunTest <-function(vectorVariable, testInputParameter, clusterCount, libraries, fInit, fDeinit, fPayload)
+RunTest <-function(testInputVector, testInputParameter, clusterCount, libraries, fInit, fDeinit, fPayload)
 {
     cl <- makeCluster(clusterCount)
     registerDoParallel(cl)
@@ -21,10 +21,10 @@ RunTest <-function(vectorVariable, testInputParameter, clusterCount, libraries, 
     totalElapsedTime<-system.time({
         
         r<-foreach( clientId = 1:clusterCount, .packages = c(libraries, "uuid"),
-                 .export = c("vectorVariable","testInputParameter", "fInit", "fDeinit", "fPayload"), .combine = c) %dopar%
+                 .export = c("testInputVector","testInputParameter", "fInit", "fDeinit", "fPayload"), .combine = c) %dopar%
         {
             fInit()
-            result<-fPayload(vectorVariable, testInputParameter)
+            result<-fPayload(testInputVector, testInputParameter)
             fDeinit()
             result
         }
