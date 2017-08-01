@@ -330,7 +330,7 @@ namespace rTTQuoteHistory
             {
                 var buf = tick.HasAsks ? tick.Level2.Asks.Select(ask => (double)ask.Price).ToList() : new List<double>(tick.Level2.Bids.Count);
                 var count = buf.Count;
-                for (var i = 1; i <= tick.Level2.Asks.Count - count; i++)
+                for (var i = 1; i <= tick.Level2.Bids.Count - count; i++)
                 {
                     buf.Add(0);
                 }
