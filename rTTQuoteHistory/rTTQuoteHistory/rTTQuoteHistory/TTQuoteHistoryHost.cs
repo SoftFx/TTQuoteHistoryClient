@@ -113,8 +113,11 @@ namespace rTTQuoteHistory
             var buf = _client.QueryQuoteHistoryBars(
                         new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, periodicity,
                         priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-            if (count > 0) buf.Reverse();
-            buf.RemoveAt(0);
+            if (count > 0)
+            {
+                buf.Reverse();
+                buf.RemoveAt(0);
+            }
             return buf;
         }
 
@@ -141,7 +144,7 @@ namespace rTTQuoteHistory
                 while (_barList.Count < count * sign)
                 {
                     var lastCount = _barList.Count;
-                    _barList.AddRange(GetNextBars(timestamp, count * sign - _barList.Count >= 5000 ? 5000 * sign : count - _barList.Count * sign+ sign, symbol, periodicity, priceType));
+                    _barList.AddRange(GetNextBars(timestamp, count * sign - _barList.Count >= 5000 ? 5000 * sign : count - _barList.Count * sign + sign, symbol, periodicity, priceType));
                     if (_barList.Count > 0)
                         timestamp = _barList[_barList.Count - 1].Time;
                     if (lastCount == _barList.Count) break;
@@ -220,7 +223,7 @@ namespace rTTQuoteHistory
         private static IEnumerable<Tick> GetNextTicks(DateTime timestamp, double count, string symbol, bool level2)
         {
             var buf = _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Ticks - Math.Sign(count)*10000, DateTimeKind.Utc), (int)count, symbol, level2);
+                        new DateTime(timestamp.Ticks - Math.Sign(count) * 10000, DateTimeKind.Utc), (int)count, symbol, level2);
             if (count > 0) buf.Reverse();
             return buf;
         }
