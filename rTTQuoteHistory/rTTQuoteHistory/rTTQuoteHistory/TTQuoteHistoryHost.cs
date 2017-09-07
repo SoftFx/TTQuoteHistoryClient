@@ -1,7 +1,10 @@
 ﻿using System;
+using System.CodeDom;
+using System.Collections;
 using TTQuoteHistoryClient;
 using System.Collections.Generic;
 using System.Linq;
+using TickTrader.Common.ModelLayer;
 
 namespace rTTQuoteHistory
 {
@@ -16,25 +19,62 @@ namespace rTTQuoteHistory
         private static List<Bar> _barList;
         private static List<Tick> _tickList;
 
-        private static TickQuery _lastTickQuery;
-        private static BarQuery _lastBarQuery;
+        private static IEnumerable<List<Tick>> _tickRange;
+        private static IEnumerator<List<Tick>> _tickIEnumerator; 
+        private static IEnumerable<List<Bar>> _barRange;
+        private static IEnumerator<List<Bar>> _barIEnumerator;  
 
-        struct TickQuery
-        {
-            public DateTime from;
-            public DateTime to;
-            public string symbol;
-            public bool level2;
-        }
+        private static bool isEndOfBarStream = true;
+        public static bool IsEndOfBarStream() => isEndOfBarStream;
+        private static bool isEndOfTickStream = true;
+        public static bool IsEndOfTickStream() => isEndOfTickStream;
+        private static bool isEndOfTickL2Stream = true;
+        public static bool IsEndOfTickL2Stream() => isEndOfTickL2Stream;
 
-        struct BarQuery
+        private struct LastBarQuery
         {
             public DateTime from;
             public DateTime to;
             public string symbol;
             public string periodicity;
             public string priceType;
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                    return false;
+                if (obj is LastBarQuery)
+                {
+                    var newObj = (LastBarQuery) obj;
+                    return from == newObj.from && to == newObj.to && symbol == newObj.symbol &&
+                           periodicity == newObj.periodicity && priceType == newObj.priceType;
+                }
+                return false;
+            }
         }
+
+        private static LastBarQuery _lastBarQuery;
+
+        private struct LastTickQuery
+        {
+            public DateTime from;
+            public DateTime to;
+            public string symbol;
+            public bool level2;
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                    return false;
+                if (obj is LastTickQuery)
+                {
+                    var newObj = (LastTickQuery)obj;
+                    return from == newObj.from && to == newObj.to && symbol == newObj.symbol &&
+                           level2 == newObj.level2;
+                }
+                return false;
+            }
+        }
+
+        private static LastTickQuery _lastTickQuery;
 
         public static int Connect(string name, string address, double port, string login, string password)
         {
@@ -71,87 +111,117 @@ namespace rTTQuoteHistory
         }
 
         #region Bars
-        public static int StreamBarRequest(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
+
+        public static bool CheckNewBarParams(DateTime from, DateTime to, string symbol, string periodicity,
+            string priceType)
+        {
+            var newBarQuery = new LastBarQuery
+            {
+                from = from,
+                to = to,
+                symbol = symbol,
+                periodicity = periodicity,
+                priceType = priceType
+            };
+            if (newBarQuery.Equals(_lastBarQuery))
+            {
+                return false;
+            }
+            _lastBarQuery = newBarQuery;
+            return true;
+        }
+
+        public static int FillBarRange(DateTime from, DateTime to, string symbol, string periodicity, string priceType)
         {
             _barList = new List<Bar>();
-            int barCount = 0;
-            foreach (
-                var bar in
-                    _client.QueryQuoteHistoryBarsRange(
-                        new DateTime(from.Ticks, DateTimeKind.Utc), new DateTime(to.Ticks, DateTimeKind.Utc), symbol, periodicity,
-                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid))
+            _barRange = DivideBars(_client.QueryQuoteHistoryBarsRange(
+                new DateTime(from.Ticks, DateTimeKind.Utc), new DateTime(to.Ticks, DateTimeKind.Utc), symbol,
+                periodicity,
+                priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
+            _barIEnumerator = _barRange.GetEnumerator();
+            return 0;
+        }
+
+        public static IEnumerable<List<Bar>> DivideBars(IEnumerable<Bar> query)
+        {
+            List<Bar> curRes = new List<Bar>();
+            foreach (var bar in query)
             {
-                if (barCount >= 1000000)
+                curRes.Add(bar);
+                if (curRes.Count >= 1000000)
                 {
-                    _lastBarQuery = new BarQuery
-                    {
-                        from = _barList.Last().Time,
-                        to = to,
-                        periodicity = periodicity,
-                        priceType = priceType,
-                        symbol = symbol
-                    };
-                    break;
+                    yield return curRes;
+                    curRes = new List<Bar>();
                 }
-                _barList.Add(bar);
-                barCount++;
             }
-            return 0;
+            if (curRes.Count > 0)
+            {
+                yield return curRes;
+            }
         }
 
-        public static int NextStreamBarRequest()
-        {
-            if (_lastBarQuery.symbol == null) return -1;
-            StreamBarRequest(_lastBarQuery.from, _lastBarQuery.to, _lastBarQuery.symbol, _lastBarQuery.periodicity,
-                _lastBarQuery.priceType);
-            return 0;
+        public static int StreamBarRequest()
+        {      
+            _barList?.Clear();
+            if (_barIEnumerator.MoveNext())
+            {
+                isEndOfBarStream = false;
+                _barList = _barIEnumerator.Current;
+                return 0;
+            }
+            isEndOfBarStream = true;
+            return -1;
         }
 
-        private static IEnumerable<Bar> GetNextBars(DateTime timestamp, double count, string symbol, string periodicity,
+        public static void BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
-            var buf = _client.QueryQuoteHistoryBars(
-                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, periodicity,
-                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-            if (count > 0)
+            if (count<0)
             {
-                buf.Reverse();
-                buf.RemoveAt(0);
-            }
-            return buf;
-        }
-
-        public static int BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
-            string priceType)
-        {
-            var sign = Math.Sign(count);
-            if (count * sign <= 5000)
-            {
-                _barList =
-                    _client.QueryQuoteHistoryBars(
-                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, periodicity,
-                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                count *= -1;
+                if (count <= 5000)
+                {
+                    _barList =
+                        _client.QueryQuoteHistoryBars(
+                            new DateTime(timestamp.Ticks, DateTimeKind.Utc), -(int)count, symbol, periodicity,
+                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
+                }
+                else
+                {
+                    _barList = new List<Bar>();
+                    while (count >= 0)
+                    {
+                        _barList.AddRange(_client.QueryQuoteHistoryBars(
+                            new DateTime(timestamp.Ticks, DateTimeKind.Utc), -(int)(count > 5000 ? 5000 : count), symbol, periodicity,
+                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
+                        count -= 5000;
+                        timestamp = _barList.Last().Time;
+                    }
+                }
             }
             else
             {
-                _barList =
-                    _client.QueryQuoteHistoryBars(
-                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), 5000 * sign, symbol, periodicity,
-                        priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
-                if (_barList.Count > 0)
-                    timestamp = (sign < 0) ? _barList[_barList.Count - 1].Time : _barList[0].Time;
-                if (sign > 0) _barList.Reverse();
-                while (_barList.Count < count * sign)
+                if (count <= 5000)
                 {
-                    var lastCount = _barList.Count;
-                    _barList.AddRange(GetNextBars(timestamp, count * sign - _barList.Count >= 5000 ? 5000 * sign : count - _barList.Count * sign + sign, symbol, periodicity, priceType));
-                    if (_barList.Count > 0)
-                        timestamp = _barList[_barList.Count - 1].Time;
-                    if (lastCount == _barList.Count) break;
+                    _barList =
+                        _client.QueryQuoteHistoryBars(
+                            new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, periodicity,
+                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid);
                 }
-                if (sign > 0) _barList.Reverse();
+                else
+                {
+                    _barList = new List<Bar>();
+                    while (count >= 0)
+                    {
+                        _barList.InsertRange(0, _client.QueryQuoteHistoryBars(
+                            new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)(count > 5000 ? 5000 : count), symbol, periodicity,
+                            priceType.Equals("Ask") ? PriceType.Ask : PriceType.Bid));
+                        count -= 5000;
+                        timestamp = periodicity.Equals("M1") ? _barList.First().Time.AddMinutes(-1) :
+                        _barList.First().Time.AddHours(-1);
+                    }
+                }
             }
-            return 0;
         }
 
         public static DateTime[] GetBarTime()
@@ -187,73 +257,101 @@ namespace rTTQuoteHistory
 
         #region Ticks
 
-        public static int StreamTickRequest(DateTime from, DateTime to, string symbol, bool level2)
+        public static bool CheckNewTickParams(DateTime from, DateTime to, string symbol, bool level2)
+        {
+            var newTickQuery = new LastTickQuery
+            {
+                from = from,
+                to = to,
+                symbol = symbol,
+                level2 = level2
+            };
+            if (newTickQuery.Equals(_lastTickQuery))
+            {
+                return false;
+            }
+            _lastTickQuery = newTickQuery;
+            return true;
+        }
+
+        public static int FillTickRange(DateTime from, DateTime to, string symbol, bool level2)
         {
             _tickList = new List<Tick>();
-            int tickCount = 0;
-            foreach (
-                var tick in
-                    _client.QueryQuoteHistoryTicksRange(
-                        new DateTime(from.Ticks, DateTimeKind.Utc), new DateTime(to.Ticks, DateTimeKind.Utc), symbol, level2))
+            _tickRange = DivideTicks(_client.QueryQuoteHistoryTicksRange(new DateTime(from.Ticks,DateTimeKind.Utc), new DateTime(to.Ticks,DateTimeKind.Utc), symbol,level2));
+            _tickIEnumerator = _tickRange.GetEnumerator();
+            return 0;
+        }
+
+        public static IEnumerable<List<Tick>> DivideTicks(IEnumerable<Tick> query)
+        {
+            List<Tick> curRes = new List<Tick>();
+            foreach (var tick in query)
             {
-                if (tickCount >= 1000000)
+                curRes.Add(tick);
+                if (curRes.Count >= 1000000)
                 {
-                    _lastTickQuery = new TickQuery
-                    {
-                        from = _tickList.Last().Id.Time,
-                        to = to,
-                        level2 = level2,
-                        symbol = symbol
-                    };
-                    break;
+                    yield return curRes;
+                    curRes = new List<Tick>();
                 }
-                _tickList.Add(tick);
-                tickCount++;
             }
-            return 0;
+            if (curRes.Count > 0)
+            {
+                yield return curRes;
+            }
         }
 
-        public static int NextStreamTickRequest()
+        public static int StreamTickRequest(bool level2)
         {
-            if (_lastTickQuery.symbol == null) return -1;
-            StreamTickRequest(_lastTickQuery.from, _lastTickQuery.to, _lastTickQuery.symbol, _lastTickQuery.level2);
-            return 0;
-        }
-
-        private static IEnumerable<Tick> GetNextTicks(DateTime timestamp, double count, string symbol, bool level2)
-        {
-            var buf = _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Ticks - Math.Sign(count) * 10000, DateTimeKind.Utc), (int)count, symbol, level2);
-            if (count > 0) buf.Reverse();
-            return buf;
+            
+            _tickList?.Clear();
+            if (_tickIEnumerator.MoveNext())
+            {
+                if (level2) isEndOfTickL2Stream = false;
+                else isEndOfTickStream = false;
+                _tickList = _tickIEnumerator.Current;
+                return 0;
+            }
+            if (level2) isEndOfTickL2Stream = true;
+            else isEndOfTickStream = true;
+            return -1;
         }
 
         public static int TickRequest(DateTime timestamp, double count, string symbol, bool level2)
         {
-            var sign = Math.Sign(count);
-            if (count * sign <= 1000)
+            if (count < 0)
             {
-                _tickList =
-                    _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), (int)count, symbol, level2);
+                count *= -1;
+                if (count <= 1000)
+                {
+                    _tickList = _client.QueryQuoteHistoryTicks(timestamp, -(int)count, symbol, level2);
+                }
+                else
+                {
+                    _tickList = new List<Tick>();
+                    while (count >= 0)
+                    {
+                        _tickList.AddRange(_client.QueryQuoteHistoryTicks(timestamp, -(int)(count > 1000 ? 1000 : count), symbol, level2));
+                        count -= 1000;
+                        timestamp = _tickList.Last().Id.Time.AddMilliseconds(1);
+                    }
+                }
             }
             else
             {
-                _tickList =
-                    _client.QueryQuoteHistoryTicks(
-                        new DateTime(timestamp.Ticks, DateTimeKind.Utc), 1000 * sign, symbol, level2);
-                if (_tickList.Count > 0)
-                    timestamp = (sign < 0) ? _tickList[_tickList.Count - 1].Id.Time : _tickList[0].Id.Time;
-                if (sign > 0) _tickList.Reverse();
-                while (_tickList.Count < count * sign)
+                if (count <= 1000)
                 {
-                    var lastCount = _tickList.Count;
-                    _tickList.AddRange(GetNextTicks(timestamp, count * sign - _tickList.Count > 1000 ? 1000 * sign : count - _tickList.Count * sign, symbol, level2));
-                    if (_tickList.Count > 0)
-                        timestamp = _tickList[_tickList.Count - 1].Id.Time;
-                    if (lastCount == _tickList.Count) break;
+                    _tickList = _client.QueryQuoteHistoryTicks(timestamp, (int)count, symbol, level2);
                 }
-                if (sign > 0) _tickList.Reverse();
+                else
+                {
+                    _tickList = new List<Tick>();
+                    while (count >= 0)
+                    {
+                        _tickList.InsertRange(0, _client.QueryQuoteHistoryTicks(timestamp, (int)(count > 1000 ? 1000 : count), symbol, level2));
+                        count -= 1000;
+                        timestamp = _tickList.First().Id.Time.AddMilliseconds(-1);
+                    }
+                }
             }
             return 0;
         }
@@ -390,7 +488,7 @@ namespace rTTQuoteHistory
 
         static void Main(string[] args)
         {
-            
+
         }
     }
 }

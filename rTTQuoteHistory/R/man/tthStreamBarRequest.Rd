@@ -12,7 +12,7 @@ tthStreamBarRequest(symbol = "", startTime = "", endTime = "",
 
 \item{startTime}{Start of the time intervals}
 
-\item{endTime}{Count of bars}
+\item{endTime}{End of the time interval}
 
 \item{periodicity}{periodicity}
 

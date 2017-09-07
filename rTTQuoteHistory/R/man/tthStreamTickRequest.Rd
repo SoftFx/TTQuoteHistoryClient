@@ -11,7 +11,7 @@ tthStreamTickRequest(symbol = "", startTime = "", endTime = "")
 
 \item{startTime}{Start of the time intervals}
 
-\item{endTime}{Count of ticks}
+\item{endTime}{End of the time interval}
 }
 \description{
 Gets the ticks as requested

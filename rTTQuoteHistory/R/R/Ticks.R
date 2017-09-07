@@ -9,23 +9,30 @@ tthTickRequest <- function(symbol = "", timestamp= "", count= "") {
   if(hResult == 0){tGetTickDataFrame()}
 }
 
+#' Checking end of tick stream
+#' 
+#' @export
+tthIsEndOfTickStream<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'IsEndOfTickStream')
+}
+
+#' Checking for new params
+#' 
+#' @export
+CheckNewTickParams<-function(symbol = "", startTime= "", endTime= "",level2 = FALSE){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'CheckNewTickParams', startTime,endTime,symbol,level2)
+}
+
 #' Gets the ticks as requested
 #'
 #' @param symbol Symbol looked
 #' @param startTime Start of the time intervals
-#' @param endTime Count of ticks
+#' @param endTime End of the time interval
 #' @export
 tthStreamTickRequest <- function(symbol = "", startTime= "", endTime= "") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamTickRequest', startTime,endTime,symbol,FALSE)
+  if(tthIsEndOfTickStream() == TRUE || CheckNewTickParams(symbol,startTime,endTime,FALSE) == TRUE) rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FillTickRange', startTime,endTime,symbol,FALSE)
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost','StreamTickRequest',FALSE)
   if(hResult == 0){tGetTickDataFrame()}
-}
-
-#' Gets next ticks after limit reaching
-#' @export
-tthNextStreamTickRequest <- function() {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'NextStreamTickRequest')
-  if(hResult == 0){tGetTickDataFrame()}
-  if(hResult == -1) {print("You haven't requested ticks already")}
 }
 
 #' Get tick table
