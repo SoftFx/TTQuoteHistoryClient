@@ -173,7 +173,7 @@ namespace rTTQuoteHistory
             return -1;
         }
 
-        public static void BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
+        public static int BarRequest(DateTime timestamp, double count, string symbol, string periodicity,
             string priceType)
         {
             if (count<0)
@@ -222,6 +222,7 @@ namespace rTTQuoteHistory
                     }
                 }
             }
+            return 0;
         }
 
         public static DateTime[] GetBarTime()
