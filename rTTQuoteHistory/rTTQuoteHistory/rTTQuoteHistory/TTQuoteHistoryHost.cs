@@ -31,7 +31,7 @@ namespace rTTQuoteHistory
         private static bool isEndOfTickL2Stream = true;
         public static bool IsEndOfTickL2Stream() => isEndOfTickL2Stream;
 
-        private struct LastBarQuery
+        private class LastBarQuery
         {
             public DateTime from;
             public DateTime to;
@@ -41,7 +41,7 @@ namespace rTTQuoteHistory
             public override bool Equals(object obj)
             {
                 if (obj == null)
-                    return false;
+                    return true;
                 if (obj is LastBarQuery)
                 {
                     var newObj = (LastBarQuery) obj;
@@ -54,7 +54,7 @@ namespace rTTQuoteHistory
 
         private static LastBarQuery _lastBarQuery;
 
-        private struct LastTickQuery
+        private class LastTickQuery
         {
             public DateTime from;
             public DateTime to;
@@ -63,7 +63,7 @@ namespace rTTQuoteHistory
             public override bool Equals(object obj)
             {
                 if (obj == null)
-                    return false;
+                    return true;
                 if (obj is LastTickQuery)
                 {
                     var newObj = (LastTickQuery)obj;
