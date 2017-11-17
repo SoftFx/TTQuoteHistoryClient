@@ -2,7 +2,7 @@
 % Please edit documentation in R/TicksL2.R
 \name{tthStreamTickL2Request}
 \alias{tthStreamTickL2Request}
-\title{Gets the ticks level 2 as requested}
+\title{Gets the ticks as requested}
 \usage{
 tthStreamTickL2Request(symbol = "", startTime = "", endTime = "")
 }
@@ -11,8 +11,8 @@ tthStreamTickL2Request(symbol = "", startTime = "", endTime = "")
 
 \item{startTime}{Start of the time intervals}
 
-\item{endTime}{Count of ticks}
+\item{endTime}{End of the time interval}
 }
 \description{
-Gets the ticks level 2 as requested
+Gets the ticks as requested
 }

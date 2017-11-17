@@ -9,14 +9,22 @@ tthTickL2Request <- function(symbol = "", timestamp= "", count= "") {
   if(hResult == 0){tGetTickL2DataFrame()}
 }
 
-#' Gets the ticks level 2 as requested
+#' Checking end of tick stream
+#' 
+#' @export
+tthIsEndOfTickL2Stream<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'IsEndOfTickL2Stream')
+}
+
+#' Gets the ticks as requested
 #'
 #' @param symbol Symbol looked
 #' @param startTime Start of the time intervals
-#' @param endTime Count of ticks
+#' @param endTime End of the time interval
 #' @export
 tthStreamTickL2Request <- function(symbol = "", startTime= "", endTime= "") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamTickRequest', startTime,endTime,symbol,TRUE)
+  if(tthIsEndOfTickStream() == TRUE || CheckNewTickParams(symbol,startTime,endTime,TRUE) == TRUE) rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FillTickRange', startTime,endTime,symbol,TRUE)
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost','StreamTickRequest',TRUE)
   if(hResult == 0){tGetTickL2DataFrame()}
 }
 

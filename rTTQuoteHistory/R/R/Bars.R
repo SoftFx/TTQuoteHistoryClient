@@ -10,25 +10,32 @@ tthBarRequest <- function(symbol = "", timestamp= "", count= "", periodicity="M1
   hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'BarRequest', timestamp, count, symbol, periodicity, priceType)
   if(hResult == 0){tGetBarDataFrame()}
 }
+#' Checking end of bar stream
+#' 
+#' @export
+tthIsEndOfBarStream<-function(){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'IsEndOfBarStream')
+}
+
+#' Checking for new params
+#' 
+#' @export
+CheckNewBarParams<-function(symbol = "", startTime= "", endTime= "", periodicity="M1",priceType = "Bid"){
+  rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'CheckNewBarParams', startTime, endTime, symbol, periodicity, priceType)
+}
+
 #' Gets the bars as requested
 #'
 #' @param symbol Symbol looked
 #' @param startTime Start of the time intervals
-#' @param endTime Count of bars
+#' @param endTime End of the time interval
 #' @param periodicity periodicity
 #' @param priceType priceType
 #' @export
 tthStreamBarRequest <- function(symbol = "", startTime= "", endTime= "", periodicity="M1",priceType = "Bid") {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamBarRequest', startTime, endTime, symbol, periodicity, priceType)
+  if(tthIsEndOfBarStream() == TRUE || CheckNewBarParams(symbol, startTime, endTime, periodicity, priceType) == TRUE) rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'FillBarRange', startTime, endTime, symbol, periodicity, priceType)
+  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost','StreamBarRequest')
   if(hResult == 0){tGetBarDataFrame()}
-}
-#' Gets next bars after limit reaching
-#'
-#' @export
-tthNextStreamBarRequest <- function() {
-  hResult = rClr::clrCallStatic('rTTQuoteHistory.TTQuoteHistoryHost', 'StreamFileBarRequest')
-  if(hResult == 0){tGetBarDataFrame()}
-  if(hResult == -1) {print("You haven't requested bars already")}
 }
 
 #' Get Bar table
