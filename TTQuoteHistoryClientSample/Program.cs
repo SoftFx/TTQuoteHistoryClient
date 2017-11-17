@@ -21,7 +21,7 @@ namespace TTQuoteHistoryClientSample
                 int port = 5020;
 
                 DateTime timestamp = DateTime.UtcNow;
-                int count = 100;
+                int count = -100;
                 int threads = 1;
                 string symbol = "EURUSD";
                 string periodicity = "M1";
@@ -138,14 +138,14 @@ namespace TTQuoteHistoryClientSample
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            bool backward = count < 0;
+            bool backward = count >= 0;
             count = Math.Abs(count);
 
             List<Tick> result;
             for (int i = 0; i < count / 1000; i++)
             {
                 // Request for the bars history
-                result = client.QueryQuoteHistoryTicks(timestamp, backward ? -1000 : 1000, symbol, level2);
+                result = client.QueryQuoteHistoryTicks(timestamp, backward ? 1000 : -1000, symbol, level2);
                 if (result.Count > 0)
                     timestamp = backward ? result[result.Count - 1].Id.Time : result[0].Id.Time;
                 if (verbose)
@@ -158,7 +158,7 @@ namespace TTQuoteHistoryClientSample
             int remain = count % 1000;
             if (remain > 0)
             {
-                result = client.QueryQuoteHistoryTicks(timestamp, backward ? -remain : remain, symbol, level2);
+                result = client.QueryQuoteHistoryTicks(timestamp, backward ? remain : -remain, symbol, level2);
                 if (verbose)
                 {
                     foreach (var tick in result)
@@ -176,14 +176,14 @@ namespace TTQuoteHistoryClientSample
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            bool backward = count < 0;
+            bool backward = count >= 0;
             count = Math.Abs(count);
 
             List<Bar> result;
             for (int i = 0; i < count/5000; i++)
             {
                 // Request for the bars history
-                result = client.QueryQuoteHistoryBars(timestamp, backward ? -5000 : 5000, symbol, periodicity, priceType);
+                result = client.QueryQuoteHistoryBars(timestamp, backward ? 5000 : -5000, symbol, periodicity, priceType);
                 if (result.Count > 0)
                     timestamp = backward ? result[result.Count - 1].Time : result[0].Time;
                 if (verbose)
@@ -196,7 +196,7 @@ namespace TTQuoteHistoryClientSample
             int remain = count%5000;
             if (remain > 0)
             {
-                result = client.QueryQuoteHistoryBars(timestamp, backward ? -remain : remain, symbol, periodicity, priceType);
+                result = client.QueryQuoteHistoryBars(timestamp, backward ? remain : -remain, symbol, periodicity, priceType);
                 if (verbose)
                 {
                     foreach (var bar in result)

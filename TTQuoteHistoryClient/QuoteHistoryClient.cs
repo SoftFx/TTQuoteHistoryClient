@@ -6,13 +6,13 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using SoftFX.Net.Core;
-using SoftFX.Net.QuoteHistory;
+using SoftFX.Net.QuoteCache;
 using TickTrader.BusinessObjects;
 using TickTrader.Common.Business;
 using TickTrader.Common.Time;
 using TickTrader.Server.QuoteHistory.Serialization;
-using ClientSession = SoftFX.Net.QuoteHistory.ClientSession;
-using ClientSessionOptions = SoftFX.Net.QuoteHistory.ClientSessionOptions;
+using ClientSession = SoftFX.Net.QuoteCache.ClientSession;
+using ClientSessionOptions = SoftFX.Net.QuoteCache.ClientSessionOptions;
 
 namespace TTQuoteHistoryClient
 {
@@ -176,7 +176,7 @@ namespace TTQuoteHistoryClient
 
         #region Session listener
 
-        private class ClientSessionListener : SoftFX.Net.QuoteHistory.ClientSessionListener
+        private class ClientSessionListener : SoftFX.Net.QuoteCache.ClientSessionListener
         {
             public ClientSessionListener(QuoteHistoryClient client)
             {
@@ -623,10 +623,10 @@ namespace TTQuoteHistoryClient
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
-                Count = Math.Min(count, 5000),
+                Count = (count > 0) ? Math.Min(count, 5000) : Math.Max(count, -5000),
                 Symbol = symbol,
                 Periodicity = pereodicity,
-                PriceType = (SoftFX.Net.QuoteHistory.PriceType) priceType
+                PriceType = (SoftFX.Net.QuoteCache.PriceType) priceType
             };
 
             // Send request to the server
@@ -654,7 +654,7 @@ namespace TTQuoteHistoryClient
             {
                 RequestId = Guid.NewGuid().ToString(),
                 Timestamp = timestamp,
-                Count = Math.Min(count, 1000),
+                Count = (count > 0) ? Math.Min(count, 1000) : Math.Max(count, -1000),
                 Symbol = symbol,
                 Level2 = level2
             };
@@ -853,7 +853,7 @@ namespace TTQuoteHistoryClient
                 Timestamp = timestamp,
                 Symbol = symbol,
                 Periodicity = pereodicity,
-                PriceType = (SoftFX.Net.QuoteHistory.PriceType)priceType
+                PriceType = (SoftFX.Net.QuoteCache.PriceType)priceType
             };
 
             // Send request to the server

@@ -19,7 +19,7 @@ namespace TTQuoteHistoryClientStressTest
                 int port = 5020;
 
                 DateTime timestamp = DateTime.UtcNow;
-                int count = 100;
+                int count = -100;
                 string symbol = "EURUSD";
                 string periodicity = "M1";
                 PriceType priceType = PriceType.Bid;
@@ -86,7 +86,7 @@ namespace TTQuoteHistoryClientStressTest
 
                 // Create an instance of Quote History client
                 using (var client = new QuoteHistoryClient("QuoteHistoryCache", port))
-                {                  
+                {
                     // Connect to the server
                     client.Connect(address);
 
@@ -112,7 +112,7 @@ namespace TTQuoteHistoryClientStressTest
                     stop_ = false;
 
                     for (int i = 0; i < threads.Length; ++i)
-                    {                        
+                    {
                         threads[i].Start(threadParams);
 //                        System.Threading.Thread.Sleep(10);
                     }

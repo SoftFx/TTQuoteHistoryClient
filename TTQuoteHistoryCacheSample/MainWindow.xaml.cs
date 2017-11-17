@@ -26,7 +26,7 @@ namespace TTQuoteHistoryCacheSample
             pickerTimestamp.Format = DateTimeFormat.Custom;
             pickerTimestamp.FormatString = "yyyy.MM.dd HH:mm:ss.fff";
             pickerTimestamp.Value = DateTime.UtcNow;
-            textCount.Text = "100";
+            textCount.Text = "-100";
         }
 
         QuoteHistoryClient _historyClient;
@@ -182,8 +182,8 @@ namespace TTQuoteHistoryCacheSample
                         result.Append($"Best bid: {tick.BestBid.Price:0.#####} {tick.BestBid.Volume:0.#####} ");
                     if (tick.HasAsk)
                         result.Append($"Best ask: {tick.BestAsk.Price:0.#####} {tick.BestAsk.Volume:0.#####} ");
-                    result.Append($"Bids: {tick.Level2.BidCount} ");
-                    result.Append($"Asks: {tick.Level2.AskCount} ");
+                    result.Append($"Bids: {tick.Level2.BidsCount} ");
+                    result.Append($"Asks: {tick.Level2.AsksCount} ");
                     result.AppendLine();
                 }
                 textIntervals.Text = _historyCacheManager.DumpTicksIntervals(symbol, (priceType == "Level2"));
