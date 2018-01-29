@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 using SoftFX.Net.Core;
 using SoftFX.Net.QuoteCache;
@@ -183,13 +184,13 @@ namespace TTQuoteHistoryClient
                 _client = client;
             }
 
-            public override void OnConnect(ClientSession clientSession)
+            public override void OnConnect(ClientSession clientSession, ConnectClientContext connectContext)
             {
                 _client.IsConnected = true;
                 _client.Connected?.Invoke(_client);
             }
 
-            public override void OnConnectError(ClientSession clientSession)
+            public override void OnConnectError(ClientSession clientSession, string text)
             {
                 _client.IsConnected = false;
                 _client.ConnectError?.Invoke(_client);
@@ -458,9 +459,9 @@ namespace TTQuoteHistoryClient
 
         public void Connect(string address)
         {
-            _session.Connect(address);
-
-            if (!_session.WaitConnect((int) Timeout.TotalMilliseconds))
+            var context = new ConnectClientContext(true);
+            _session.Connect(context, address);
+            if (!context.Wait((int) Timeout.TotalMilliseconds))
             {
                 Disconnect();
                 throw new TimeoutException("Connect timeout");
@@ -469,7 +470,7 @@ namespace TTQuoteHistoryClient
 
         public void ConnectAsync(string address)
         {
-            _session.Connect(address);
+            _session.Connect(null, address);
         }
 
         public void Disconnect()
@@ -480,7 +481,7 @@ namespace TTQuoteHistoryClient
 
         public void DisconnectAsync()
         {
-            _session.Disconnect("Disconnect client");
+            _session.Disconnect(null, "Disconnect client");
         }
 
         public void Join()
